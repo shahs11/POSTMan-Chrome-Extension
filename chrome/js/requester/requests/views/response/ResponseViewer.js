@@ -4,6 +4,8 @@ var ResponseViewer = Backbone.View.extend({
         var responseModel = model.get("response");
         var view = this;
 
+        this.defaultSection = "body";
+
         this.responseBodyViewer = new ResponseBodyViewer({model: this.model});
         this.responseHeaderViewer = new ResponseHeaderViewer({model: this.model});
         this.responseCookieViewer = new ResponseCookieViewer({model: this.model});
@@ -44,6 +46,7 @@ var ResponseViewer = Backbone.View.extend({
 
         $('.response-tabs').on("click", "li", function () {
             var section = $(this).attr('data-section');
+            this.defaultSection = "section";
             if (section === "body") {
                 view.showBody();
             }
@@ -52,6 +55,9 @@ var ResponseViewer = Backbone.View.extend({
             }
             else if (section === "cookies") {
                 view.showCookies();
+            }
+            else if (section === "tests") {
+                view.showTests();
             }
         });
 
@@ -125,13 +131,12 @@ var ResponseViewer = Backbone.View.extend({
     },
 
     showHeaders:function () {
-        console.log("Hide response data container");
-
         $('.response-tabs li').removeClass("active");
         $('.response-tabs li[data-section="headers"]').addClass("active");
         $('#response-data-container').css("display", "none");
         $('#response-headers-container').css("display", "block");
         $('#response-cookies-container').css("display", "none");
+        $('#response-tests-container').css("display", "none");
     },
 
     showBody:function () {
@@ -140,6 +145,7 @@ var ResponseViewer = Backbone.View.extend({
         $('#response-data-container').css("display", "block");
         $('#response-headers-container').css("display", "none");
         $('#response-cookies-container').css("display", "none");
+        $('#response-tests-container').css("display", "none");
     },
 
     showCookies:function () {
@@ -148,6 +154,16 @@ var ResponseViewer = Backbone.View.extend({
         $('#response-data-container').css("display", "none");
         $('#response-headers-container').css("display", "none");
         $('#response-cookies-container').css("display", "block");
+        $('#response-tests-container').css("display", "none");
+    },
+
+    showTests:function () {
+        $('.response-tabs li').removeClass("active");
+        $('.response-tabs li[data-section="tests"]').addClass("active");
+        $('#response-data-container').css("display", "none");
+        $('#response-headers-container').css("display", "none");
+        $('#response-cookies-container').css("display", "none");
+        $('#response-tests-container').css("display", "block");
     },
 
     showScreen:function (screen) {

@@ -754,7 +754,8 @@ input[type="file"] {
   float: left;
   margin-right: 15px; }
 
-#request-preview {
+#request-preview,
+#write-tests {
   display: none; }
 
 #request-preview-content {
@@ -1096,7 +1097,8 @@ input[type="file"] {
   outline: none !important; }
 
 #response-headers-container,
-#response-cookies-container {
+#response-cookies-container,
+#response-tests-container {
   margin-top: 20px;
   max-width: 1000px;
   font-size: 11px;
@@ -1122,9 +1124,27 @@ input[type="file"] {
     float: left;
     margin-right: 5px;
     cursor: pointer; }
+  .response-header .response-header-value {
+    float: left; }
 
-.response-header-value {
-  float: left; }
+.response-test {
+  font-family: "Source Sans Pro", Helvetica, Arial, sans-serif;
+  list-style: none;
+  margin-bottom: 5px;
+  color: #111;
+  font-size: 14px; }
+  .response-test .response-test-name {
+    font-weight: bold;
+    float: left;
+    margin-right: 5px; }
+  .response-test .response-test-value {
+    float: left; }
+
+.response-test-color-pass {
+  color: green; }
+
+.response-test-color-failed {
+  color: red; }
 
 #responsedata,
 #headers,
@@ -1304,7 +1324,8 @@ input[type="file"] {
   margin-left: 5px;
   margin-top: 17px; }
 
-#response-headers {
+#response-headers,
+#response-tests {
   margin-top: 15px;
   margin-bottom: 15px;
   margin-left: 0;

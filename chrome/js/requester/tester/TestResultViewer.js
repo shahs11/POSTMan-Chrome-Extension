@@ -12,9 +12,22 @@ var TestResultViewer = Backbone.View.extend({
 		var failure = 0;
 		var total = 0;
 
+		var results = [];
+		var r;
 		for (var key in testResults) {
 		  if (testResults.hasOwnProperty(key)) {
-		    d += key + ": " + testResults[key] + ", ";
+
+		  	if (testResults[key]) {
+		  		r = "pass";
+		  	}
+		  	else {
+		  		r = "failed";
+		  	}
+
+		    results.push({
+		    	key: key,
+		    	value: r
+		    });
 
 		    if (testResults[key] === true) {
 		    	success += 1;
@@ -27,16 +40,8 @@ var TestResultViewer = Backbone.View.extend({
 		  }
 		}
 
-		var o = {
-			"total": total,
-			"data": d,
-			"success": success
-		};
-
-		$('#test-results').html(Handlebars.templates.test_results(o));
-		$('#test-results .test-results').popover({
-		    trigger: "hover"
-		});
+		$('.response-tabs li[data-section="tests"]').html("Tests (" + success + "/" + total + ")");
+		$('#response-tests').html(Handlebars.templates.response_tests({items: results}));
 	}
 
 });

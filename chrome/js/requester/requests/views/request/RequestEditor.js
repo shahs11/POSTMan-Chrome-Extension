@@ -187,12 +187,15 @@ var RequestEditor = Backbone.View.extend({
 
         if (isFromCollection) {
             $('#update-request-in-collection').css("display", "inline-block");
+            $('#write-tests').css("display", "inline-block");
         }
         else if (isFromSample) {
             $('#update-request-in-collection').css("display", "inline-block");
+            $('#write-tests').css("display", "inline-block");
         }
         else {
             $('#update-request-in-collection').css("display", "none");
+            $('#write-tests').css("display", "none");
         }
 
         $('#headers-keyvaleditor-actions-open .headers-count').html(headers.length);
