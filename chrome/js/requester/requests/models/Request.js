@@ -96,6 +96,9 @@ var Request = Backbone.Model.extend({
                 request.set("testResults", data);
             });
         }
+        else {
+            this.set("testResults", null);
+        }
 
     },
 

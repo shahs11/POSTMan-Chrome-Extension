@@ -7,6 +7,12 @@ var TestResultViewer = Backbone.View.extend({
 
 	render: function() {
 		var testResults = this.model.get("testResults");
+
+		if (testResults === null) {
+			$('.response-tabs li[data-section="tests"]').html("Tests (0/0)");
+			$('#response-tests').html("");
+		}
+
 		var d = "";
 		var success = 0;
 		var failure = 0;
@@ -40,6 +46,7 @@ var TestResultViewer = Backbone.View.extend({
 		  }
 		}
 
+		$('.response-tabs li[data-section="tests"]').css("display", "block");
 		$('.response-tabs li[data-section="tests"]').html("Tests (" + success + "/" + total + ")");
 		$('#response-tests').html(Handlebars.templates.response_tests({items: results}));
 	}
