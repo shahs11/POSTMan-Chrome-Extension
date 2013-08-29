@@ -1088,6 +1088,22 @@ var PmCollections = Backbone.Collection.extend({
         });
     },
 
+    updateCollectionRequestTests: function(id, tests) {
+        var pmCollection = this;
+        console.log("Updating request tests", id, tests);
+
+        pm.indexedDB.getCollectionRequest(id, function (req) {
+            console.log("Received request", req);
+            req.tests = tests;
+
+            pmCollection.updateRequestInDataStore(req, true, function(request) {
+                console.log("Updated request tests", req);
+                pmCollection.trigger("updateCollectionRequest", request);
+                pm.mediator.trigger("updateCollectionRequest", request);
+            });
+        });
+    },
+
     // Delete collection request
     deleteCollectionRequest:function (id, callback) {
         var pmCollection = this;

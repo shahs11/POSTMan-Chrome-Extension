@@ -1,7 +1,8 @@
 var FEATURES = {
 	USER: "user",
 	DIRECTORY: "directory",
-	DRIVE_SYNC: "drive_sync"
+	DRIVE_SYNC: "drive_sync",
+	TESTER: "tester"
 };
 
 var Features = Backbone.Model.extend({
@@ -10,6 +11,7 @@ var Features = Backbone.Model.extend({
 		obj[FEATURES.USER] = true;
 		obj[FEATURES.DIRECTORY] = true;
 		obj[FEATURES.DRIVE_SYNC] = false;
+		obj[FEATURES.TESTER] = true;
 
 	    return obj;
 	},

@@ -22,7 +22,9 @@ var Request = Backbone.Model.extend({
             body:null,
             data:null,
             previewHtml:"",
-            curlHtml:""
+            curlHtml:"",
+            tests:null,
+            testResults:null
         };
     },
 
@@ -37,6 +39,8 @@ var Request = Backbone.Model.extend({
         this.on("cancelRequest", this.onCancelRequest, this);
         this.on("startNew", this.onStartNew, this);
         this.on("send", this.onSend, this);
+
+        response.on("finishedLoadResponse", this.onFinishedResponseLoaded, this);
 
         pm.mediator.on("addRequestURLParam", this.onAddRequestURLParam, this);
         pm.mediator.on("addRequestHeader", this.onAddRequestHeader, this);
@@ -80,6 +84,19 @@ var Request = Backbone.Model.extend({
 
     onSend: function(type, action) {
         this.send(type, action);
+    },
+
+    onFinishedResponseLoaded: function() {
+        var request = this;
+        var tests = this.get("tests");
+
+        if (tests !== null) {
+            console.log("Inside Requests, should run test now");
+            pm.mediator.trigger("runRequestTest", this, function(data) {
+                request.set("testResults", data);
+            });
+        }
+
     },
 
     isMethodWithBody:function (method) {
@@ -443,10 +460,16 @@ var Request = Backbone.Model.extend({
                 else {
                     this.set("responses", []);
                 }
-
             }
             else {
                 this.set("responses", []);
+            }
+
+            if (request.hasOwnProperty("tests")) {
+                this.set("tests", request.tests);
+            }
+            else {
+                this.set("tests", null);
             }
         }
         else if (isFromSample) {
@@ -756,6 +779,7 @@ var Request = Backbone.Model.extend({
         if(id === request.id) {
             this.set("name", request.name);
             this.set("description", request.description);
+            this.set("tests", request.tests);
         }
     }
 });

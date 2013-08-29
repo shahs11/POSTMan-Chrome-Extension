@@ -90,7 +90,10 @@
     user-select: text;
 }
 
-#response-time, #response-status, #response-sample-status {
+#response-time,
+#response-status,
+#response-sample-status,
+#test-results {
     margin-top: 8px;
 }
 

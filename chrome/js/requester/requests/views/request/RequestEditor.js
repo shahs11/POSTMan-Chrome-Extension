@@ -62,6 +62,10 @@ var RequestEditor = Backbone.View.extend({
             view.trigger("send", "arraybuffer", "download");
         });
 
+        $("#write-tests").on("click", function () {
+            pm.mediator.trigger("showTestWriter", model);
+        });
+
         $("#preview-request").on("click", function () {
             _.bind(view.onPreviewRequestClick, view)();
         });

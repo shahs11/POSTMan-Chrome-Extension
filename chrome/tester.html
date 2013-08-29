@@ -714,6 +714,10 @@
                     id="preview-request">Preview
             </button>
             <button class="btn"
+                    data-action="write-tests"
+                    id="write-tests">Tests
+            </button>
+            <button class="btn"
                     id="add-to-collection"
                     href="#modal-add-to-collection"
                     data-toggle="modal" data-backdrop="static"
@@ -760,6 +764,9 @@
 
                 <div id="response-sample-status" class="span1">
                     <span class="label label-info">Sample</span>
+                </div>
+
+                <div id="test-results" class="span1">
                 </div>
             </div>
 
@@ -1742,6 +1749,29 @@
         </table>
     </div>
 </div>
+<div id="modal-test-writer" class="modal fade">
+    <div class="modal-header">
+        <a class="close" data-dismiss="modal">×</a>
+
+        <h3>Tests</h3>
+    </div>
+    <div class="modal-body">
+        <form class="form" id="form-test-writer">
+            <input type="hidden" class="collection-request-id" val=""/>
+            <div class="control-group">
+                <div class="controls">
+                    <div class="input" id="test-writer-editor-container">
+                        <textarea id="test-writer-editor" data-tabindex="2"></textarea>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-primary" data-tabindex="3">Done</a>
+        <a data-dismiss="modal" class="btn btn-secondary" data-tabindex="4">Cancel</a>
+    </div>
+</div>
 <div id="modal-user-collections" class="modal fade">
     <div class="modal-header">
         <a class="close" data-dismiss="modal">x</a>
@@ -1782,6 +1812,9 @@
 	</div>
 </div>
 </div> <!-- container div end -->
+
+<!-- Tester sandbox -->
+<iframe id="tester_sandbox" seamless="seamless" src="tester_sandbox.html"></iframe>
 
 <!-- Google Analytics Sandbox -->
 <iframe id="embedded_ga" seamless="seamless" src="embedded_ga_host.html"></iframe>

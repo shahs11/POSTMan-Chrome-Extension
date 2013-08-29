@@ -168,6 +168,9 @@ li .right {
 .dropdown-menu a {
   cursor: pointer; }
 
+#tester_sandbox {
+  display: none; }
+
 /*Form styles*/
 .clean-input {
   color: #333333 !important;
@@ -1143,7 +1146,10 @@ input[type="file"] {
   -ms-user-select: text;
   user-select: text; }
 
-#response-time, #response-status, #response-sample-status {
+#response-time,
+#response-status,
+#response-sample-status,
+#test-results {
   margin-top: 8px; }
 
 #response-time {

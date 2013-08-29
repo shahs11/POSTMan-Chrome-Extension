@@ -90,6 +90,12 @@ window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileS
 pm.init = function () {
     Handlebars.partials = Handlebars.templates;
 
+    function initializeTester() {
+        var tester = new Tester();
+        var testWriterModal = new TestWriterModal({model: pm.collections});
+        pm.tester = tester;
+    }
+
     function initializeCollections() {
         var pmCollections = new PmCollections();
 
@@ -236,6 +242,7 @@ pm.init = function () {
             initializeRequester();
             initializeHistory();
             initializeCollections();
+            initializeTester();
 
             initializeEnvironments();
             initializeHeaderPresets();

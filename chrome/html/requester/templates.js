@@ -1106,6 +1106,36 @@ function program1(depth0,data) {
   else { return ''; }
   });
 
+this["Handlebars"]["templates"]["test_results"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<div class=\"test-results\" data-placement=\"bottom\" data-original-title=\"Tests: ";
+  if (stack1 = helpers.success) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.success; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "/";
+  if (stack1 = helpers.total) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.total; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" data-content=\"";
+  if (stack1 = helpers.data) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.data; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\"\n     rel=\"popover\"><span class=\"label\">Tests: ";
+  if (stack1 = helpers.success) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.success; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "/";
+  if (stack1 = helpers.total) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.total; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "</span>\n</div>\n";
+  return buffer;
+  });
+
 this["Handlebars"]["templates"]["user_collections_list"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); partials = this.merge(partials, Handlebars.partials); data = data || {};

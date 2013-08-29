@@ -10,6 +10,8 @@ var ResponseViewer = Backbone.View.extend({
         this.responseMetaViewer = new ResponseMetaViewer({model: this.model});
         this.responseSaver = new ResponseSaver({model: this.model});
 
+        this.testResultViewer = new TestResultViewer({model: this.model});
+
         responseModel.on("failedRequest", this.onFailedRequest, this);
         responseModel.on("clearResponse", this.clear, this);
         responseModel.on("sentRequest", this.onSentRequest, this);
