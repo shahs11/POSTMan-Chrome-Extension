@@ -470,15 +470,21 @@ var Request = Backbone.Model.extend({
 
             if (request.hasOwnProperty("tests")) {
                 this.set("tests", request.tests);
+                this.set("testResults", null);
             }
             else {
                 this.set("tests", null);
+                this.set("testResults", null);
             }
         }
         else if (isFromSample) {
+            this.set("tests", null);
+            this.set("testResults", null);
         }
         else {
             this.set("name", "");
+            this.set("tests", null);
+            this.set("testResults", null);
         }
 
         if (typeof request.headers !== "undefined") {
@@ -783,6 +789,7 @@ var Request = Backbone.Model.extend({
             this.set("name", request.name);
             this.set("description", request.description);
             this.set("tests", request.tests);
+            this.set("testResults", request.testResults);
         }
     }
 });
