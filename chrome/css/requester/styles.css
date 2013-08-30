@@ -282,7 +282,10 @@ li .right {
   height: 47px; }
   .navbar-main-navigation li {
     list-style: none;
-    float: left; }
+    float: left;
+    margin-left: 0; }
+  .navbar-main-navigation li:first-child {
+    margin-left: 15px; }
   .navbar-main-navigation a {
     color: #999;
     padding-left: 13px;
@@ -290,7 +293,6 @@ li .right {
     display: inline-block;
     height: 32px;
     vertical-align: middle;
-    margin-left: 15px;
     padding-right: 13px; }
   .navbar-main-navigation a:hover {
     background: #333;
@@ -325,7 +327,6 @@ li .right {
     display: inline-block;
     height: 32px;
     vertical-align: middle;
-    margin-left: 15px;
     padding-right: 13px; }
   .preferences #donate-link:hover {
     background: #333;

@@ -5,7 +5,6 @@
     display: inline-block;
     height: 32px;
     vertical-align: middle;
-    margin-left: 15px;
     padding-right: 13px;
 }
 
@@ -54,6 +53,11 @@
     li {
         list-style: none;
         float: left;
+        margin-left: 0;
+    }
+
+    li:first-child {
+        margin-left: 15px;
     }
 
     a {
