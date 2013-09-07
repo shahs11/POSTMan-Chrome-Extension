@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Postman - v0.9.3 (Beta)</title>
+    <link rel="stylesheet" type="text/css" href="css/custom-theme/jquery-ui-1.9.2.custom.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-modal.css"/>
+    <link rel="stylesheet" type="text/css" href="css/jquery.jscrollpane.css"/>
+    <link rel="stylesheet" type="text/css" href="js/libs/codemirror/lib/codemirror.css"/>
+    <link rel="stylesheet" type="text/css" href="js/libs/codemirror/theme/eclipse.css"/>
+    <link rel="stylesheet" type="text/css" href="css/requester/styles.css"/>
+    <link rel="stylesheet" type="text/css" href="css/keyvalueeditor.css"/>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript" src="ga_details.js"></script>
+    <script type="text/javascript" src="embedded_ga_host.js"></script>
+    <link rel="stylesheet" media="all" href="embedded_ga_host.css"></link>
+</head>
+<body>
+<div class="postman-navbar">
+    <div id="logo">
+        <img src="img/v2/logo.png"/>
+    </div>
+    <div id="back-to-requester-container" class="navbar-main-navigation">
+      <ul>
+        <li>
+          <a id="back-to-request">Request editor</a>
+        </li>
+      </ul>
+    </div>
+    <div class="preferences">
+        <a id="google-drive-status" rel="tooltip" class="icon"
+           data-placement="bottom" data-original-title="Google Drive Status">
+            <img src="img/google-drive/product32.png"/></a>
+        <a href="#modal-settings" data-toggle="modal"
+           rel="tooltip" class="icon"
+           data-placement="bottom" data-original-title="Settings">
+            <img src="img/v2/settings.png"/></a>
+        <a href="https://www.twitter.com/postmanclient"
+           rel="tooltip" class="icon"
+           target="_blank"
+           data-placement="bottom" data-original-title="@postmanclient">
+            <img src="img/v2/twitter.png"/></a>
+        <a href="https://www.github.com/a85/POSTMan-Chrome-Extension/wiki"
+           rel="tooltip" class="icon"
+           target="_blank"
+           data-placement="bottom" data-original-title="Help">
+            <img src="img/v2/question_mark.png"/></a>
+        <a href="https://gumroad.com/l/wqbB"
+            class="navbar-text-link"
+           rel="tooltip"
+           id="donate-link"
+           target="_blank"
+           data-placement="bottom" data-original-title="Donate to make Postman even better!">
+            Donate</a>
+    </div>
+    <div id="google-drive-status">
+        <a rel="tooltip"
+            data-placement="bottom" data-original-title="Sync">
+            <img src="img/google-drive/product32.png" style="vertical-align: middle;"/>
+        </a>
+    </div>
+    <div id="user-status">
+      <div id="user-status-false">
+          <a id="user-status-not-logged-in" rel="tooltip"
+            class="navbar-link"
+            data-placement="bottom" data-original-title="Log in to manage your shared collections">
+            Log in
+          </a>
+      </div>
+      <div id="user-status-true">
+        <div class="dropdown">
+          <a data-toggle="dropdown" id="user-status-username" class="navbar-link"></a>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
+            <li>
+              <a href="#modal-user-collections"
+                data-toggle="modal"
+                id="user-status-shared-collections">Shared collections</a>
+            </li>
+            <li>
+              <a id="user-status-logout">Logout</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+</div>
+<div id="container" class="clearfix">
+    <div id="sidebar-toggle" class="sidebar-toggle">
+        <img src="img/tri_arrow_left.png"/>
+    </div>
+    <div id="sidebar" class="sidebar">
+        <div id="sidebar-sections" class="sidebar-sections clearfix">
+            <div class="clearfix">
+                <ul id="sidebar-selectors" class="request-helper-tabs sidebar-helper-tabs clearfix">
+                    <li id="sidebar-selectors-history" data-id="history" class="active"><span>History</span></a></li>
+                    <li id="sidebar-selectors-collections" data-id="collections"><span>Collections</span></li>
+                </ul>
+            </div>
+            <div id="sidebar-section-data" class="sidebar-section-data">
+                <div class="tab-pane active" id="sidebar-section-history">
+                    <ul id="history-items" class="clearfix">
+                    </ul>
+                </div>
+                <div class="tab-pane active" id="sidebar-section-collections">
+                    <ul id="collection-items" class="clearfix">
+                    </ul>
+                </div>
+            </div>
+            <div id="history-options" class="section-options">
+                <a class="history-actions-delete" rel="tooltip"
+                        data-placement="bottom"
+                        data-original-title="Clear history">
+                    <img src="img/trash-empty.png" style="width:24px; height:24px; vertical-align: middle;"/>
+                </a>
+            </div>
+            <div id="collections-options" class="section-options">
+                <a href="#modal-new-collection" rel="tooltip" data-original-title="Add new collection"
+                   data-toggle="modal"
+                   data-backdrop="static"
+                   data-placement="bottom"
+                   data-keyboard="true"><img src="img/folder_plus.png"
+                                             style="width:20px; height:20px; vertical-align: middle;"/></a>
+                <a href="#modal-import-collection" rel="tooltip" data-original-title="Import collection"
+                   data-toggle="modal"
+                   data-backdrop="static"
+                   data-placement="bottom"
+                   data-keyboard="true"><img src="img/inbox_in.png"
+                                             style="width:20px; height:20px; vertical-align: middle;"/></a>
+            </div>
+        </div>
+    </div>
+    <div id="sidebar-search-container" class="sidebar-search-container">
+        <form class="form-search">
+            <input id="sidebar-search" class="sidebar-search" type="text" class="input-medium search-query" placeholder="Type to filter">
+            <div id="sidebar-search-cancel" class="sidebar-search-cancel">
+                <img src="img/delete.png"/>
+            </div>
+        </form>
+    </div>
+    <div id="main-container">
+        <div id="sidebar-filler">
+        </div>
+        <div id="main" class="content">
+        </div>
+    </div>
+</div> <!-- container div end -->
+
+<!-- Tester sandbox -->
+<iframe id="tester_sandbox" seamless="seamless" src="tester_sandbox.html"></iframe>
+
+<!-- Google Analytics Sandbox -->
+<iframe id="embedded_ga" seamless="seamless" src="embedded_ga_host.html"></iframe>
+
+<script type="text/javascript" src="js/libs/jquery.min.js"></script>
+<script type="text/javascript" src="js/libs/lodash.min.js"></script>
+<script type="text/javascript" src="js/libs/handlebars.js"></script>
+<script type="text/javascript" src="js/libs/backbone-min.js"></script>
+<script type="text/javascript" src="js/libs/vkbeautify.2.0.js"></script>
+
+<!-- jQuery plugins -->
+<script type="text/javascript" src="js/libs/jquery-ui.min.js"></script>
+<script type="text/javascript" src="js/libs/jquery.keyvalueeditor.js"></script>
+<script type="text/javascript" src="js/libs/jquery.hotkeys.js"></script>
+<script type="text/javascript" src="js/libs/jquery.mousewheel.js"></script>
+<script type="text/javascript" src="js/libs/jquery.timeago.js"></script>
+<script type="text/javascript" src="js/libs/flippant.min.js"></script>
+
+<!-- Bootstrap -->
+<script type="text/javascript" src="js/libs/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/libs/bootstrap-modalmanager.js"></script>
+<script type="text/javascript" src="js/libs/bootstrap-modal.js"></script>
+
+<!-- Noty -->
+<script type="text/javascript" src="js/libs/noty/jquery.noty.js"></script>
+<script type="text/javascript" src="js/libs/noty/layouts/top.js"></script>
+<script type="text/javascript" src="js/libs/noty/layouts/topCenter.js"></script>
+<script type="text/javascript" src="js/libs/noty/themes/default.js"></script>
+
+<!-- Crypto -->
+<script type="text/javascript" src="js/libs/crypto/rollups/md5.js"></script>
+<script type="text/javascript" src="js/libs/crypto/rollups/hmac-sha1.js"></script>
+<script type="text/javascript" src="js/libs/crypto/rollups/hmac-sha256.js"></script>
+<script type="text/javascript" src="js/libs/crypto/components/enc-base64-min.js"></script>
+
+<!-- Oauth -->
+
+<script type="text/javascript" src="js/libs/dropbox/sha1.js"></script>
+<script type="text/javascript" src="js/libs/dropbox/oauth.js"></script>
+
+<!-- CodeMirror -->
+<script type="text/javascript" src="js/libs/codemirror/lib/codemirror.js"></script>
+<script type="text/javascript" src="js/libs/codemirror/lib/util/formatting.js"></script>
+<script type="text/javascript" src="js/libs/codemirror/lib/util/foldcode.js"></script>
+<script type="text/javascript" src="js/libs/codemirror/mode/xmlpure/xmlpure.js"></script>
+<script type="text/javascript" src="js/libs/codemirror/mode/javascript/javascript.js"></script>
+<script type="text/javascript" src="js/libs/codemirror/mode/markdown/markdown.js"></script>
+<script type="text/javascript" src="js/libs/codemirror/mode/xml/xml.js"></script>
+<script type="text/javascript" src="js/libs/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+<script type="text/javascript" src="js/libs/codemirror.overlayParser.js"></script>
+
+<!-- Markdown-js -->
+<script type="text/javascript" src="js/libs/markdown/markdown.js"></script>
+
+<!-- Postman -->
+<script type="text/javascript" src="js/utils/util.js" data-cover></script>
+<script type="text/javascript" src="js/utils/httpstatuscodes.js"></script>
+<script type="text/javascript" src="js/utils/httpheaders.js"></script>
+<script type="text/javascript" src="js/utils/oauth2_urls.js"></script>
+<script type="text/javascript" src="js/utils/mediatypes.js"></script>
+<script type="text/javascript" src="html/requester/templates.js"></script>
+<script type="text/javascript" src="js/gapi-chrome-apps.js"></script>
+</body>
+</html>

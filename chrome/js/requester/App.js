@@ -293,6 +293,22 @@ var App = Backbone.View.extend({
 			pm.mediator.trigger("hideSidebar");
 		}
 		else if (module === "test_runner") {
+			this.openTestRunner();
 		}
+	},
+
+	openTestRunner: function() {
+		chrome.app.window.create('test_runner.html', {
+			"bounds": {
+				width: 1200,
+				height: 800
+			}
+		}, function(win) {
+			win.onClosed.addListener(function() {
+				console.log("On closing the window");
+			});
+		});
+
+		console.log("Opening test runner");
 	}
 });

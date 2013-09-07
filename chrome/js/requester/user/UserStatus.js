@@ -29,6 +29,8 @@ var UserStatus = Backbone.View.extend({
 		var id = this.model.get("id");
 		var name = this.model.get("name");
 
+		$("#user-status-not-logged-in").tooltip();
+
 		if (id !== 0) {
 			$("#user-status-false").css("display", "none");
 			$("#user-status-true").css("display", "block");
