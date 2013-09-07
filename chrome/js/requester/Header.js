@@ -17,6 +17,8 @@ var Header = Backbone.View.extend({
 			pm.mediator.trigger("openModule", "requester");
 		});
 
+		pm.mediator.on("openModule", this.onOpenModule, this);
+
 		this.render();
 	},
 
@@ -24,6 +26,18 @@ var Header = Backbone.View.extend({
 		if (pm.features.isFeatureEnabled(FEATURES.DIRECTORY)) {
 			$("#add-ons").css("display", "block");
 		}
+	},
+
+	onOpenModule: function(module) {
+		if (module === "directory") {
+			$("#add-ons").css("display", "none");
+			$("#back-to-requester-container").css("display", "block");
+		}
+		else if (module === "requester") {
+			$("#add-ons").css("display", "block");
+			$("#back-to-requester-container").css("display", "none");
+		}
 	}
+
 
 });
