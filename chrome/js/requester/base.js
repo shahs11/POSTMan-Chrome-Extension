@@ -28,10 +28,15 @@ pm.targets = {
 pm.target = pm.targets.CHROME_PACKAGED_APP;
 
 pm.isTesting = false;
+pm.isLocal = true;
 pm.features = new Features();
 
 if (pm.isTesting) {
     pm.databaseName = "postman_test";
+    pm.webUrl = "http://localhost/postman/html";
+}
+else if (pm.isLocal) {
+    pm.databaseName = "postman";
     pm.webUrl = "http://localhost/postman/html";
 }
 else {

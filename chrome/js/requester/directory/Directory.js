@@ -3,6 +3,8 @@ var DirectoryCollection = Backbone.Model.extend({
         return {
             "id": "",
             "name": "",
+            "user_id": 0,
+            "user_name": "",
             "description": "",
             "order": [],
             "folders": [],
@@ -35,8 +37,9 @@ var Directory = Backbone.Collection.extend({
     onInitializeDirectory: function() {
     	if (!this.isInitialized) {
     		this.isInitialized = true;
-    		this.getCollections(this.startId, this.fetchCount, "descending");
     	}
+
+        this.getCollections(this.startId, this.fetchCount, "descending");
     },
 
     onGetDirectoryCollection: function(link_id) {

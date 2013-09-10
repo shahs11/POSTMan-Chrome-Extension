@@ -1638,7 +1638,7 @@ input[type="file"] {
     font-weight: normal;
     margin-left: 10px; }
   #directory-browser .directory-collection {
-    height: 200px;
+    height: 215px;
     width: 255px;
     overflow: hidden;
     border: solid thin #fff;
@@ -1649,6 +1649,9 @@ input[type="file"] {
     box-shadow: 0px 3px 5px 0px #CCC; }
     #directory-browser .directory-collection p {
       margin: 0; }
+    #directory-browser .directory-collection p.user_name {
+      font-size: 12px;
+      font-weight: bold; }
     #directory-browser .directory-collection p.updated_at {
       font-size: 11px;
       color: #999; }
@@ -1685,6 +1688,9 @@ input[type="file"] {
 
 #directory-collection-viewer p {
   margin: 0; }
+#directory-collection-viewer #directory-collection-viewer-user-name {
+  font-weight: bold;
+  margin-bottom: 10px; }
 #directory-collection-viewer #directory-collection-viewer-description {
   margin-bottom: 10px; }
 #directory-collection-viewer #directory-collection-viewer-updated-at {

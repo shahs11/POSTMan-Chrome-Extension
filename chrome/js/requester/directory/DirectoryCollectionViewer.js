@@ -11,6 +11,7 @@ var DirectoryCollectionViewer = Backbone.View.extend({
 
     showCollection: function(collection) {
     	$("#directory-collection-viewer-name").html(collection.get("name"));
+        $("#directory-collection-viewer-user-name").html(collection.get("user_name"));
     	$("#directory-collection-viewer-description").html(markdown.toHTML(collection.get("description")));
     	$("#directory-collection-viewer-updated-at").html("Last updated: " + collection.get("updated_at_formatted"));
     	$("#directory-collection-viewer-count-requests").html(collection.get("count_requests") + " endpoints");
