@@ -61,8 +61,7 @@
            rel="tooltip"
            id="donate-link"
            target="_blank"
-           data-placement="bottom" data-original-title="Donate to make Postman even better!">
-            Donate</a>
+           data-placement="bottom" data-original-title="Donate to make Postman even better!">Donate</a>
     </div>
     <div id="google-drive-status">
         <a rel="tooltip"
@@ -85,7 +84,7 @@
             <li>
               <a href="#modal-user-collections"
                 data-toggle="modal"
-                id="user-status-shared-collections">Shared collections</a>
+                id="user-status-shared-collections">My collections</a>
             </li>
             <li>
               <a id="user-status-logout">Logout</a>
@@ -1086,6 +1085,27 @@
         <a data-dismiss="modal" class="btn">No</a>
     </div>
 </div>
+<div id="modal-delete-user-collection" class="modal fade">
+    <div class="modal-header">
+        <a class="close" data-dismiss="modal">x</a>
+
+        <h3>Are you sure?</h3>
+    </div>
+
+    <div class="modal-body">
+        <p>
+            Are you sure you want to delete this collection from getpostman.com?
+        </p>
+    </div>
+
+    <div class="modal-footer">
+        <a data-collection-id=""
+            id="modal-delete-user-collection-yes"
+            data-dismiss="modal"
+            class="btn btn-danger">Yes</a>
+        <a data-dismiss="modal" class="btn">No</a>
+    </div>
+</div>
 <div id="modal-drive-first-time-sync" class="modal fade">
     <div class="modal-header">
         <a class="close" data-dismiss="modal">x</a>
@@ -1679,17 +1699,16 @@
             <p>
                 Upload your collection to getpostman.com and get a link to share with others.
             </p>
+
             <div id="share-collection-directory-features">
-                <p>
-                    Your existing collection will be updated if you are signed in.
-                </p>
                 <label class="checkbox">
-                    <input type="checkbox" id="share-collection-is-public" value="public"/>Make it public
+                    <input type="checkbox" id="share-collection-is-public" value="public"/>Public
+                    <p>Public collections can be viewed and downloaded by others through the API directory</p>
                 </label>
-                <p>Public collections can be viewed and downloaded by others through the API directory</p>
             </div>
 
             <pre id="share-collection-link"></pre>
+
             <a id="share-collection-get-link" data-collection-id="" class="btn">Upload</a>
         </div>
         <div style="margin-top: 20px;">
@@ -1789,6 +1808,15 @@
     </div>
 
     <div class="modal-body">
+        <div class="toolbar">
+            <button class="btn user-collections-actions-upload-all" id="user-collections-actions-upload-all">
+                Upload all
+            </button>
+            <button class="btn user-collections-actions-download-all" id="user-collections-actions-download-all">
+                Download all
+            </button>
+        </div>
+
         <div id="user-collections-list-wrapper">
             <table id="user-collections-list" class="table table-striped table-bordered"
                    style="margin-top: 10px;">
@@ -1797,8 +1825,9 @@
             </table>
         </div>
 
-        <p>
-            To update existing collections, upload them again using the share collection dialog.
+        <p class="instructions">
+            <strong>Note</strong><br/>
+            Downloading shared collections will overwrite local versions
         </p>
     </div>
 </div>

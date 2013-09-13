@@ -6,9 +6,27 @@ var UserCollections = Backbone.View.extend({
 		model.on("logout", this.render, this);
 		model.on("change:collections", this.render, this);
 
+		var deleteUserCollectionModal = new DeleteUserCollectionModal();
+
+		$("#user-collections-actions-upload-all").on("click", function() {
+			console.log("Upload all collections");
+			pm.mediator.trigger("uploadAllLocalCollections");
+		});
+
+		$("#user-collections-actions-download-all").on("click", function() {
+			console.log("Download all collections");
+			pm.mediator.trigger("downloadAllSharedCollections");
+		});
+
+		$("#user-collections-list").on("click", ".user-collection-action-download", function() {
+			var id = parseInt($(this).attr("data-remote-id"), 10);
+			console.log("User collection to download", id);
+			pm.mediator.trigger("downloadSharedCollection", id);
+		});
+
 		$("#user-collections-list").on("click", ".user-collection-action-delete", function() {
 			var id = $(this).attr("data-id");
-			pm.mediator.trigger("deleteSharedCollection", id)
+			pm.mediator.trigger("confirmDeleteSharedCollection", id);
 		});
 
 		this.render();

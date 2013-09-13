@@ -5,6 +5,15 @@
     </div>
 
     <div class="modal-body">
+        <div class="toolbar">
+            <button class="btn user-collections-actions-upload-all" id="user-collections-actions-upload-all">
+                Upload all
+            </button>
+            <button class="btn user-collections-actions-download-all" id="user-collections-actions-download-all">
+                Download all
+            </button>
+        </div>
+
         <div id="user-collections-list-wrapper">
             <table id="user-collections-list" class="table table-striped table-bordered"
                    style="margin-top: 10px;">
@@ -13,8 +22,9 @@
             </table>
         </div>
 
-        <p>
-            To update existing collections, upload them again using the share collection dialog.
+        <p class="instructions">
+            <strong>Note</strong><br/>
+            Downloading shared collections will overwrite local versions
         </p>
     </div>
 </div>

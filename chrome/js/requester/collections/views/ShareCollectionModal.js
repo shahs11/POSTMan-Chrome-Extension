@@ -10,7 +10,7 @@ var ShareCollectionModal = Backbone.View.extend({
             var id = $(this).attr('data-collection-id');
             var isChecked = $("#share-collection-is-public").is(":checked");
 
-            model.uploadCollection(id, isChecked, function (link) {
+            model.uploadCollection(id, isChecked, true, function (link) {
                 $('#share-collection-link').css("display", "block");
                 $('#share-collection-link').html(link);
             });
@@ -28,6 +28,27 @@ var ShareCollectionModal = Backbone.View.extend({
         $("#modal-share-collection").on("hidden", function () {
             pm.app.trigger("modalClose");
         });
+
+        model.on("shareCollectionModal", this.show, this);
+    },
+
+    show: function(id) {
+        var collection = this.model.get(id);
+
+        $("#modal-share-collection").modal("show");
+
+        $('#share-collection-get-link').attr("data-collection-id", id);
+        $('#share-collection-download').attr("data-collection-id", id);
+        $('#share-collection-link').css("display", "none");
+
+        if (collection.get("remote_id") !== 0) {
+            $('#share-collection-directory-features').css("display", "none");
+            $('#share-collection-get-link').html("Update");
+        }
+        else {
+            $('#share-collection-directory-features').css("display", "block");
+            $('#share-collection-get-link').html("Upload");
+        }
     },
 
     render: function() {

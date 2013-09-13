@@ -38,6 +38,30 @@ var PmCollections = Backbone.Collection.extend({
         pm.mediator.on("addDirectoryCollection", this.onAddDirectoryCollection, this);
         pm.mediator.on("addResponseToCollectionRequest", this.addResponseToCollectionRequest, this);
         pm.mediator.on("updateResponsesForCollectionRequest", this.updateResponsesForCollectionRequest, this);
+        pm.mediator.on("deletedSharedCollection", this.onDeletedSharedCollection, this);
+        pm.mediator.on("overwriteCollection", this.onOverwriteCollection, this);
+        pm.mediator.on("uploadAllLocalCollections", this.onUploadAllLocalCollections, this);
+    },
+
+    onUploadAllLocalCollections: function() {
+        console.log("Uploading all local collections");
+
+        var uploaded = 0;
+        var count = this.models.length;
+
+        function callback() {
+            console.log("Uploaded collection");
+            uploaded++;
+
+            if (uploaded === count) {
+                console.log("Uploaded all collections");
+                pm.mediator.trigger("refreshSharedCollections");
+            }
+        }
+
+        for(var i = 0; i < this.models.length; i++) {
+            this.uploadCollection(this.models[i].get("id"), false, false, callback);
+        }
     },
 
     // Load all collections
@@ -179,6 +203,27 @@ var PmCollections = Backbone.Collection.extend({
     onRemoveSyncableFileForRequests: function(id) {
         this.deleteRequestFromDataStore(id, false, false, function() {
         });
+    },
+
+    onOverwriteCollection: function(collection) {
+        console.log("Collection data is", collection);
+        this.overwriteCollection(collection.id, collection);
+    },
+
+    onDeletedSharedCollection: function(collection) {
+        console.log("Deleted shared collection", collection);
+        var c;
+        var pmCollection = this;
+
+        for(var i = 0; i < this.models.length; i++) {
+            var c = this.models[i];
+            if (c.get("remote_id") === collection.remote_id) {
+                c.set("remote_id", 0);
+                pmCollection.updateCollectionInDataStore(c.getAsJSON(), true, function (c) {
+                });
+                break;
+            }
+        }
     },
 
     getAsSyncableFile: function(id) {
@@ -576,6 +621,14 @@ var PmCollections = Backbone.Collection.extend({
             collectionModel.set("folders", folders);
             collectionModel.set("order", collection["order"]);
 
+
+            // Check for remote_id
+
+            if (pm.user.isLoggedIn()) {
+                var remoteId = pm.user.getRemoteIdForCollection(c.id);
+                collectionModel.set("remote_id", remoteId);
+            }
+
             // Add new collection to the database
             pmCollection.updateCollectionInDataStore(collectionModel.getAsJSON(), true, function() {
                 var i;
@@ -639,10 +692,12 @@ var PmCollections = Backbone.Collection.extend({
             var filedata;
 
             pm.indexedDB.getAllRequestsInCollection(c, function (collection, requests) {
-                console.log(collection, requests);
-
                 for (i = 0, count = requests.length; i < count; i++) {
                     requests[i]["synced"] = false;
+                }
+
+                if (collection.hasOwnProperty("remote_id")) {
+                    delete collection['remote_id'];
                 }
 
                 //Get all collection requests with one call
@@ -651,8 +706,6 @@ var PmCollections = Backbone.Collection.extend({
 
                 name = collection['name'] + ".json";
                 type = "application/json";
-
-                console.log(collection);
 
                 filedata = JSON.stringify(collection);
                 callback(name, type, filedata);
@@ -677,27 +730,27 @@ var PmCollections = Backbone.Collection.extend({
     },
 
     // Upload collection
-    uploadCollection:function (id, isChecked, callback) {
-        console.log(isChecked);
+    uploadCollection:function (id, isPublic, refreshSharedCollections, callback) {
+        var pmCollection = this;
+
         this.getCollectionDataForFile(id, function (name, type, filedata) {
-            var uploadUrl = pm.webUrl + '/collections?is_public=' + isChecked;
+            pm.api.uploadCollection(filedata, isPublic, function (data) {
+                var link = data.link;
 
-            if (pm.user.get("id") !== 0) {
-                uploadUrl += "&user_id=" + pm.user.get("id");
-                uploadUrl += "&access_token=" + pm.user.get("access_token");
-            }
-
-            $.ajax({
-                type:'POST',
-                url:uploadUrl,
-                data:filedata,
-                success:function (data) {
-                    var link = data.link;
+                if (callback) {
                     callback(link);
+                }
+
+                if (refreshSharedCollections) {
                     pm.mediator.trigger("refreshSharedCollections");
                 }
-            });
 
+                var collection = pmCollection.get(id);
+                var remote_id = parseInt(data.id, 10);
+                collection.set("remote_id", remote_id);
+                pmCollection.updateCollectionInDataStore(collection.getAsJSON(), true, function (c) {
+                });
+            });
         });
     },
 
@@ -1032,8 +1085,6 @@ var PmCollections = Backbone.Collection.extend({
     },
 
     updateResponsesForCollectionRequest: function(collectionRequestId, responses) {
-        console.log(collectionRequestId, responses);
-
         var pmCollection = this;
 
         pm.indexedDB.getCollectionRequest(collectionRequestId, function (collectionRequest) {

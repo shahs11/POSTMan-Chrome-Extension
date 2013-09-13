@@ -707,7 +707,11 @@ var Request = Backbone.Model.extend({
 
     generateCurl: function() {
         var method = this.get("method").toUpperCase();
-        var url = this.get("url");
+
+        var url = this.encodeUrl(this.get("url"));
+        url = pm.envManager.getCurrentValue(url);
+        url = ensureProperUrl(url);
+
         var headers = this.getXhrHeaders();
         var hasBody = this.isMethodWithBody(method);
         var body;
@@ -737,7 +741,12 @@ var Request = Backbone.Model.extend({
     generateHTTPRequest:function() {
         var method = this.get("method").toUpperCase();
         var httpVersion = "HTTP/1.1";
-        var hostAndPath = this.splitUrlIntoHostAndPath(this.get("url"));
+
+        var url = this.encodeUrl(this.get("url"));
+        url = pm.envManager.getCurrentValue(url);
+        url = ensureProperUrl(url);
+
+        var hostAndPath = this.splitUrlIntoHostAndPath(url);
 
         var path = hostAndPath.path;
         var host = hostAndPath.host;

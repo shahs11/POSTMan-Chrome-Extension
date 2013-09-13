@@ -42,6 +42,7 @@ else if (pm.isLocal) {
 else {
     pm.databaseName = "postman";
     pm.webUrl = "https://www.getpostman.com";
+    // pm.webUrl = "http://localhost/postman/html";
 }
 
 
@@ -95,10 +96,15 @@ window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileS
 pm.init = function () {
     Handlebars.partials = Handlebars.templates;
 
+<<<<<<< HEAD
     function initializeTester() {
         var tester = new Tester();
         var testWriterModal = new TestWriterModal({model: pm.collections});
         pm.tester = tester;
+=======
+    function initializePostmanAPI() {
+        pm.api = new PostmanAPI();
+>>>>>>> dev-v2
     }
 
     function initializeCollections() {
@@ -244,6 +250,7 @@ pm.init = function () {
         var settingsModal = new SettingsModal({model: pm.settings});
         pm.filesystem.init();
         pm.indexedDB.open(function() {
+            initializePostmanAPI();
             initializeRequester();
             initializeHistory();
             initializeCollections();
