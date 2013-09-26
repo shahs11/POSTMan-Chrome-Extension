@@ -300,7 +300,7 @@ var App = Backbone.View.extend({
 	openTestRunner: function() {
 		chrome.app.window.create('test_runner.html', {
 			"bounds": {
-				width: 1200,
+				width: 1000,
 				height: 800
 			}
 		}, function(win) {

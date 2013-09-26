@@ -19,5 +19,4 @@ var Evaluator = Backbone.Model.extend({
 			}
 		});
 	}
-
 });
