@@ -190,8 +190,6 @@ pm.indexedDB = {
         console.log("Clearing all object stores");
         //Make sure we are testing and the database is not postman
         if (pm.isTesting && pm.databaseName !== "postman") {
-            console.log("Correct database");
-
             var stores = [
                 "requests", "collections", "header_presets",
                 "collection_requests", "environments",
@@ -256,6 +254,8 @@ pm.indexedDB = {
     },
 
     addCollectionRequest:function (req, callback) {
+        console.log("Saving the request", req);
+
         var db = pm.indexedDB.db;
         var trans = db.transaction(["collection_requests"], "readwrite");
         var store = trans.objectStore("collection_requests");

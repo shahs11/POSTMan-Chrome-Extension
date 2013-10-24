@@ -26,6 +26,8 @@ var PostmanAPI = Backbone.Model.extend({
 	},
 
 	exchangeRefreshToken: function(successCallback) {
+		console.log("Trying to exchangeRefreshToken");
+
 		var postUrl = pm.webUrl + "/client-oauth2-refresh";
 		postUrl += "?user_id=" + pm.user.get("id");
 
@@ -89,21 +91,35 @@ var PostmanAPI = Backbone.Model.extend({
 	uploadCollection: function(collectionData, isPublic, successCallback) {
 		var uploadUrl = pm.webUrl + '/collections?is_public=' + isPublic;
 
-		if (pm.user.get("id") !== 0) {
-		    uploadUrl += "&user_id=" + pm.user.get("id");
-		    uploadUrl += "&access_token=" + pm.user.get("access_token");
-		}
+		if (pm.user.isLoggedIn()) {
+		    this.executeAuthenticatedRequest(function() {
+		    	uploadUrl += "&user_id=" + pm.user.get("id");
+		    	uploadUrl += "&access_token=" + pm.user.get("access_token");
 
-		$.ajax({
-		    type:'POST',
-		    url:uploadUrl,
-		    data:collectionData,
-		    success:function (data) {
-		    	if (successCallback) {
-		    		successCallback(data);
-		    	}
-		    }
-		});
+		    	$.ajax({
+		    	    type:'POST',
+		    	    url:uploadUrl,
+		    	    data:collectionData,
+		    	    success:function (data) {
+		    	    	if (successCallback) {
+		    	    		successCallback(data);
+		    	    	}
+		    	    }
+		    	});
+		    });
+		}
+		else {
+			$.ajax({
+			    type:'POST',
+			    url:uploadUrl,
+			    data:collectionData,
+			    success:function (data) {
+			    	if (successCallback) {
+			    		successCallback(data);
+			    	}
+			    }
+			});
+		}
 	},
 
 	getDirectoryCollections: function(startId, count, order, successCallback) {

@@ -2,6 +2,7 @@ var Request = Backbone.Model.extend({
     defaults: function() {
         return {
             url:"",
+            pathVariables:{},
             urlParams:{},
             name:"",
             description:"",
@@ -75,7 +76,7 @@ var Request = Backbone.Model.extend({
     },
 
     onCancelRequest: function() {
-        this.startNew();
+        this.cancel();
     },
 
     onStartNew: function() {
@@ -103,7 +104,7 @@ var Request = Backbone.Model.extend({
     },
 
     isMethodWithBody:function (method) {
-        return isMethodWithBody(method);
+        return pm.methods.isMethodWithBody(method);
     },
 
     packHeaders:function (headers) {
@@ -188,6 +189,14 @@ var Request = Backbone.Model.extend({
         return $(document.createElement('div')).html(link).text();
     },
 
+    setPathVariables: function(params) {
+        this.set("pathVariables", params);
+    },
+
+    getPathVariables: function() {
+        return this.get("pathVariables");
+    },
+
     getUrlParams: function() {
         var params = getUrlVars(this.get("url"));
         return params;
@@ -252,6 +261,17 @@ var Request = Backbone.Model.extend({
         }
     },
 
+    getFinalRequestUrl: function(url) {
+        var finalUrl;
+
+        finalUrl = replaceURLPathVariables(url, this.get("pathVariables"));
+        finalUrl = this.encodeUrl(finalUrl);
+        finalUrl = pm.envManager.getCurrentValue(finalUrl);
+        finalUrl = ensureProperUrl(finalUrl);
+
+        return finalUrl;
+    },
+
     prepareHeadersForProxy:function (headers) {
         var count = headers.length;
         for (var i = 0; i < count; i++) {
@@ -311,6 +331,7 @@ var Request = Backbone.Model.extend({
 
         var request = {
             url: this.get("url"),
+            pathVariables: this.get("pathVariables"),
             data: body.get("dataAsObjects"),
             headers: this.getPackedHeaders(),
             dataMode: body.get("dataMode"),
@@ -326,6 +347,7 @@ var Request = Backbone.Model.extend({
 
         var request = {
             url: this.get("url"),
+            pathVariables: this.get("pathVariables"),
             data: body.get("dataAsObjects"), //TODO This should be available in the model itself, asObjects = true
             headers: this.getPackedHeaders(),
             dataMode: body.get("dataMode"),
@@ -370,6 +392,8 @@ var Request = Backbone.Model.extend({
     },
 
     cancel:function () {
+        console.log("Cancel request");
+
         var response = this.get("response");
         var xhr = this.get("xhr");
         if (xhr !== null) {
@@ -416,7 +440,10 @@ var Request = Backbone.Model.extend({
     loadSampleResponse: function(response) {
         this.set("url", response.request.url);
         this.set("method", response.request.method);
-        this.set("headers", response.request.headers);
+
+        console.log("Loading sample response headers", response.request.headers);
+
+        this.set("headers", this.unpackHeaders(response.request.headers));
         this.set("data", response.request.data);
         this.set("dataMode", response.request.dataMode);
 
@@ -427,12 +454,21 @@ var Request = Backbone.Model.extend({
     },
 
     loadRequest: function(request, isFromCollection, isFromSample) {
+        console.log(request);
+
         var body = this.get("body");
         var response = this.get("response");
 
         this.set("editorMode", 0);
 
         this.set("url", request.url);
+
+        if ("pathVariables" in request) {
+            this.set("pathVariables", request.pathVariables);
+        }
+        else {
+            this.set("pathVariables", []);
+        }
 
         this.set("isFromCollection", isFromCollection);
         this.set("isFromSample", isFromSample);
@@ -535,14 +571,14 @@ var Request = Backbone.Model.extend({
     },
 
     prepareForSending: function() {
-        if (pm.helpers.getActiveHelperType() === "oauth1" && pm.helpers.getHelper("oAuth1").get("auto")) {
+        console.log("Preparing request for sending", pm.helpers.getActiveHelperType(), pm.helpers.getHelper("oAuth1").get("auto"));
+
+        if (pm.helpers.getActiveHelperType() === "oAuth1" && pm.helpers.getHelper("oAuth1").get("auto")) {
+            console.log("Generating oAuth1 helper");
             pm.helpers.getHelper("oAuth1").generateHelper();
             pm.helpers.getHelper("oAuth1").process();
         }
 
-        var headers = this.get("headers");
-
-        $('#headers-keyvaleditor-actions-open .headers-count').html(headers.length);
         this.set("startTime", new Date().getTime());
     },
 
@@ -598,19 +634,16 @@ var Request = Backbone.Model.extend({
 
         if (this.isMethodWithBody(this.get("method"))) {
             if(body.get("dataMode") === "urlencoded") {
-                var urlencodedHeader = {
-                    key: "Content-Type",
-                    name: "Content-Type",
-                    value: "application/x-www-form-urlencoded"
-                };
-
-                headers.push(urlencodedHeader);
+                this.setHeader("Content-Type", "application/x-www-form-urlencoded");
             }
+
+            headers = _.clone(this.get("headers"));
         }
 
         if (pm.settings.getSetting("usePostmanProxy") === true) {
             headers = this.prepareHeadersForProxy(headers);
         }
+
 
         var i;
         var finalHeaders = [];
@@ -650,9 +683,7 @@ var Request = Backbone.Model.extend({
 
         var originalUrl = this.get("url"); //Store this for saving the request
 
-        var url = this.encodeUrl(this.get("url"));
-        url = pm.envManager.getCurrentValue(url);
-        url = ensureProperUrl(url);
+        var url = this.getFinalRequestUrl(this.get("url"));
 
         var method = this.get("method").toUpperCase();
 
@@ -677,6 +708,7 @@ var Request = Backbone.Model.extend({
         // Prepare body
         if (this.isMethodWithBody(method)) {
             var data = body.get("data");
+            console.log("Send a method with body", data);
             if(data === false) {
                 xhr.send();
             }
@@ -692,6 +724,7 @@ var Request = Backbone.Model.extend({
 
         //Save the request
         if (pm.settings.getSetting("autoSaveRequest")) {
+            console.log("Saving data", body.get("dataAsObjects"));
             pm.history.addRequest(originalUrl,
                 method,
                 this.getPackedHeaders(),
@@ -708,9 +741,7 @@ var Request = Backbone.Model.extend({
     generateCurl: function() {
         var method = this.get("method").toUpperCase();
 
-        var url = this.encodeUrl(this.get("url"));
-        url = pm.envManager.getCurrentValue(url);
-        url = ensureProperUrl(url);
+        var url = this.getFinalRequestUrl(this.get("url"));
 
         var headers = this.getXhrHeaders();
         var hasBody = this.isMethodWithBody(method);
@@ -742,9 +773,7 @@ var Request = Backbone.Model.extend({
         var method = this.get("method").toUpperCase();
         var httpVersion = "HTTP/1.1";
 
-        var url = this.encodeUrl(this.get("url"));
-        url = pm.envManager.getCurrentValue(url);
-        url = ensureProperUrl(url);
+        var url = this.getFinalRequestUrl(this.get("url"));
 
         var hostAndPath = this.splitUrlIntoHostAndPath(url);
 

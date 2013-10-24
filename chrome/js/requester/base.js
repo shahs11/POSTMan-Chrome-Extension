@@ -27,24 +27,11 @@ pm.targets = {
 
 pm.target = pm.targets.CHROME_PACKAGED_APP;
 
-pm.isTesting = false;
-pm.isLocal = true;
+pm.isTesting = postman_flag_is_testing;
+pm.databaseName = postman_database_name;
+pm.webUrl = postman_web_url;
+
 pm.features = new Features();
-
-if (pm.isTesting) {
-    pm.databaseName = "postman_test";
-    pm.webUrl = "http://localhost/postman/html";
-}
-else if (pm.isLocal) {
-    pm.databaseName = "postman";
-    pm.webUrl = "http://localhost/postman/html";
-}
-else {
-    pm.databaseName = "postman";
-    // pm.webUrl = "https://www.getpostman.com";
-    pm.webUrl = "http://localhost/postman/html";
-}
-
 
 pm.debug = false;
 
@@ -209,6 +196,11 @@ pm.init = function () {
         pm.storage = storage;
     }
 
+    function initializeRequestMethods() {
+        var requestMethods = new RequestMethods();
+        pm.methods = requestMethods;
+    }
+
     function initializeSidebar() {
         var sidebarState = new SidebarState({history: pm.history, collections: pm.collections});
         var sidebar = new Sidebar({ model: sidebarState });
@@ -243,30 +235,33 @@ pm.init = function () {
     pm.mediator = new Mediator();
 
     initializeStorage();
+
     pm.settings = new Settings();
 
-    pm.settings.init(function() {
-        var settingsModal = new SettingsModal({model: pm.settings});
-        pm.filesystem.init();
-        pm.indexedDB.open(function() {
-            initializePostmanAPI();
-            initializeRequester();
-            initializeHistory();
-            initializeCollections();
-            initializeTester();
+    pm.methods = new RequestMethods(function() {
+        pm.settings.init(function() {
+            var settingsModal = new SettingsModal({model: pm.settings});
+            pm.filesystem.init();
+            pm.indexedDB.open(function() {
+                initializePostmanAPI();
+                initializeRequester();
+                initializeHistory();
+                initializeCollections();
+                initializeTester();
 
-            initializeEnvironments();
-            initializeHeaderPresets();
+                initializeEnvironments();
+                initializeHeaderPresets();
 
-            initializeSidebar();
+                initializeSidebar();
 
-            pm.broadcasts.init();
+                pm.broadcasts.init();
 
-            initializeDriveSync();
-            initializeUser();
-            initializeDirectory();
+                initializeDriveSync();
+                initializeUser();
+                initializeDirectory();
 
-            pm.hasPostmanInitialized = true;
+                pm.hasPostmanInitialized = true;
+            });
         });
     });
 };

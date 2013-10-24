@@ -46,7 +46,8 @@ var ResponseViewer = Backbone.View.extend({
 
         $('.response-tabs').on("click", "li", function () {
             var section = $(this).attr('data-section');
-            this.defaultSection = "section";
+            pm.settings.setSetting("responsePreviewDataSection", section);
+
             if (section === "body") {
                 view.showBody();
             }
@@ -85,8 +86,6 @@ var ResponseViewer = Backbone.View.extend({
     },
 
     load:function () {
-        console.log("Load response called");
-
         var model = this.model;
         var request = model;
         var response = model.get("response");
@@ -102,6 +101,8 @@ var ResponseViewer = Backbone.View.extend({
         var action = model.get("action");
         var presetPreviewType = pm.settings.getSetting("previewType");
 
+        var activeSection = pm.settings.getSetting("responsePreviewDataSection");
+
         this.showScreen("success");
 
         $('#response').css("display", "block");
@@ -115,9 +116,16 @@ var ResponseViewer = Backbone.View.extend({
                 this.showHeaders();
             }
             else {
-                this.showBody();
+                if (activeSection === "body") {
+                    this.showBody();
+                }
+                else if (activeSection === "headers") {
+                    this.showHeaders();
+                }
+                else {
+                    this.showBody();
+                }
             }
-
         }
 
         if (request.get("isFromCollection") === true) {

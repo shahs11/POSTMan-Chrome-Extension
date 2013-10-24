@@ -15,6 +15,7 @@ var Settings = Backbone.Model.extend({
         this.setSetting("selectedEnvironmentId", true);
         this.setSetting("lineWrapping", true);
         this.setSetting("previewType", "parsed");
+        this.setSetting("trimKeysAndValues", false);
         this.setSetting("retainLinkHeaders", false);
         this.setSetting("sendNoCacheHeader", true);
         this.setSetting("sendPostmanTokenHeader", true);
@@ -26,6 +27,7 @@ var Settings = Backbone.Model.extend({
         this.setSetting("languageDetection", "auto");
         this.setSetting("haveDonated", false);
 
+        this.setSetting("responsePreviewDataSection", "body");
         this.setSetting("requestBodyEditorContainerType", "editor");
 
         //Google Drive related
@@ -50,6 +52,7 @@ var Settings = Backbone.Model.extend({
             this.create("selectedEnvironmentId", true);
             this.create("lineWrapping", true);
             this.create("previewType", "parsed");
+            this.create("trimKeysAndValues", false);
             this.create("retainLinkHeaders", false);
             this.create("sendNoCacheHeader", true);
             this.create("sendPostmanTokenHeader", true);
@@ -61,6 +64,7 @@ var Settings = Backbone.Model.extend({
             this.create("languageDetection", "auto");
             this.create("haveDonated", false);
 
+            this.create("responsePreviewDataSection", "body");
             this.create("requestBodyEditorContainerType", "editor");
 
             //Google Drive related

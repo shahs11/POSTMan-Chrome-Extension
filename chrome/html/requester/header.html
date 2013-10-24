@@ -2,12 +2,13 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>Postman - v0.9.3 (Beta)</title>
+    <title>Postman - v0.9.3</title>
     <link rel="stylesheet" type="text/css" href="css/custom-theme/jquery-ui-1.9.2.custom.min.css"/>
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
     <link rel="stylesheet" type="text/css" href="css/bootstrap-modal.css"/>
     <link rel="stylesheet" type="text/css" href="js/libs/codemirror/lib/codemirror.css"/>
     <link rel="stylesheet" type="text/css" href="js/libs/codemirror/theme/eclipse.css"/>
+    <link rel="stylesheet" type="text/css" href="js/libs/codemirror/lib/util/dialog.css"/>
     <link rel="stylesheet" type="text/css" href="css/requester/styles.css"/>
     <link rel="stylesheet" type="text/css" href="css/keyvalueeditor.css"/>
 
@@ -39,6 +40,10 @@
       </ul>
     </div>
     <div class="preferences">
+        <a href="http://www.getpostman.com/supporters"
+            class="navbar-text-link"
+           id="donate-link"
+           target="_blank">Supporters</a>
         <a id="google-drive-status" rel="tooltip" class="icon"
            data-placement="bottom" data-original-title="Google Drive Status">
             <img src="img/google-drive/product32.png"/></a>
@@ -51,17 +56,11 @@
            target="_blank"
            data-placement="bottom" data-original-title="@postmanclient">
             <img src="img/v2/twitter.png"/></a>
-        <a href="https://www.github.com/a85/POSTMan-Chrome-Extension/wiki"
+        <a href="http://www.getpostman.com/docs"
            rel="tooltip" class="icon"
            target="_blank"
            data-placement="bottom" data-original-title="Help">
             <img src="img/v2/question_mark.png"/></a>
-        <a href="https://gumroad.com/l/wqbB"
-            class="navbar-text-link"
-           rel="tooltip"
-           id="donate-link"
-           target="_blank"
-           data-placement="bottom" data-original-title="Donate to make Postman even better!">Donate</a>
     </div>
     <div id="google-drive-status">
         <a rel="tooltip"
@@ -73,8 +72,8 @@
       <div id="user-status-false">
           <a id="user-status-not-logged-in" rel="tooltip"
             class="navbar-link"
-            data-placement="bottom" data-original-title="Log in to manage your shared collections">
-            Log in
+            data-placement="bottom" data-original-title"Sign in to manage your shared collections">
+            Sign in
           </a>
       </div>
       <div id="user-status-true">

@@ -2,12 +2,13 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>Postman - v0.9.3 (Beta)</title>
+    <title>Postman - v0.9.3</title>
     <link rel="stylesheet" type="text/css" href="css/custom-theme/jquery-ui-1.9.2.custom.min.css"/>
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
     <link rel="stylesheet" type="text/css" href="css/bootstrap-modal.css"/>
     <link rel="stylesheet" type="text/css" href="js/libs/codemirror/lib/codemirror.css"/>
     <link rel="stylesheet" type="text/css" href="js/libs/codemirror/theme/eclipse.css"/>
+    <link rel="stylesheet" type="text/css" href="js/libs/codemirror/lib/util/dialog.css"/>
     <link rel="stylesheet" type="text/css" href="css/requester/styles.css"/>
     <link rel="stylesheet" type="text/css" href="css/keyvalueeditor.css"/>
 
@@ -39,6 +40,10 @@
       </ul>
     </div>
     <div class="preferences">
+        <a href="http://www.getpostman.com/supporters"
+            class="navbar-text-link"
+           id="donate-link"
+           target="_blank">Supporters</a>
         <a id="google-drive-status" rel="tooltip" class="icon"
            data-placement="bottom" data-original-title="Google Drive Status">
             <img src="img/google-drive/product32.png"/></a>
@@ -51,17 +56,11 @@
            target="_blank"
            data-placement="bottom" data-original-title="@postmanclient">
             <img src="img/v2/twitter.png"/></a>
-        <a href="https://www.github.com/a85/POSTMan-Chrome-Extension/wiki"
+        <a href="http://www.getpostman.com/docs"
            rel="tooltip" class="icon"
            target="_blank"
            data-placement="bottom" data-original-title="Help">
             <img src="img/v2/question_mark.png"/></a>
-        <a href="https://gumroad.com/l/wqbB"
-            class="navbar-text-link"
-           rel="tooltip"
-           id="donate-link"
-           target="_blank"
-           data-placement="bottom" data-original-title="Donate to make Postman even better!">Donate</a>
     </div>
     <div id="google-drive-status">
         <a rel="tooltip"
@@ -73,8 +72,13 @@
       <div id="user-status-false">
           <a id="user-status-not-logged-in" rel="tooltip"
             class="navbar-link"
+<<<<<<< HEAD
             data-placement="bottom" data-original-title="Log in to manage your shared collections">
             Log in
+=======
+            data-placement="bottom" data-original-title"Sign in to manage your shared collections">
+            Sign in
+>>>>>>> dev-v2
           </a>
       </div>
       <div id="user-status-true">
@@ -148,8 +152,6 @@
     </form>
 </div>
 <div id="main-container">
-<div id="sidebar-filler">
-</div>
 <div id="main" class="content">
     <section id="request">
         <div id="request-builder">
@@ -600,6 +602,10 @@
 
             <div id="url-keyvaleditor-container" class="row" style="margin-left: 0px; display: none;">
                 <div id="url-keyvaleditor"></div>
+            </div>
+
+            <div id="pathvariables-keyvaleditor-container" class="row" style="margin-left: 0px; display: none;">
+                <div id="pathvariables-keyvaleditor"></div>
             </div>
 
             <div id="headers-keyvaleditor-container" class="row clearfix" style="margin-left: 0px; display: none;">
@@ -1496,6 +1502,17 @@
                     </div>
 
                     <div class="control-group">
+                        <label class="control-label" for="trim-keys-and-values">Trim keys and values in request body</label>
+
+                        <div class="controls">
+                            <select class="medium" name="trim-keys-and-values" id="trim-keys-and-values">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
                         <label class="control-label" for="retain-link-headers">Retain headers on clicking on links</label>
 
                         <div class="controls">
@@ -1702,8 +1719,7 @@
 
             <div id="share-collection-directory-features">
                 <label class="checkbox">
-                    <input type="checkbox" id="share-collection-is-public" value="public"/>Public
-                    <p>Public collections can be viewed and downloaded by others through the API directory</p>
+                    <input type="checkbox" id="share-collection-is-public" value="public"/>Add to the API directory
                 </label>
             </div>
 
@@ -1897,6 +1913,9 @@
 <script type="text/javascript" src="js/libs/codemirror/lib/codemirror.js"></script>
 <script type="text/javascript" src="js/libs/codemirror/lib/util/formatting.js"></script>
 <script type="text/javascript" src="js/libs/codemirror/lib/util/foldcode.js"></script>
+<script type="text/javascript" src="js/libs/codemirror/lib/util/search.js"></script>
+<script type="text/javascript" src="js/libs/codemirror/lib/util/searchcursor.js"></script>
+<script type="text/javascript" src="js/libs/codemirror/lib/util/dialog.js"></script>
 <script type="text/javascript" src="js/libs/codemirror/mode/xmlpure/xmlpure.js"></script>
 <script type="text/javascript" src="js/libs/codemirror/mode/javascript/javascript.js"></script>
 <script type="text/javascript" src="js/libs/codemirror/mode/markdown/markdown.js"></script>
@@ -1915,6 +1934,7 @@
 <script type="text/javascript" src="js/utils/mediatypes.js"></script>
 <script type="text/javascript" src="html/requester/templates.js"></script>
 <script type="text/javascript" src="js/gapi-chrome-apps.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
 <script type="text/javascript" src="js/requester.js" data-cover></script>
 </body>
 </html>
@@ -1926,11 +1946,11 @@
 <script type="text/javascript" src="tests/libs/jasmine-1.3.1/jasmine-html.js"></script>
 <script type="text/javascript" src="tests/mocks/mocks.js"></script>
 <script type="text/javascript" src="tests/tester.js"></script>
-<script type="text/javascript" src="tests/init.js"></script>
+<!-- <script type="text/javascript" src="tests/init.js"></script>
 <script type="text/javascript" src="tests/specs/HistorySpec.js"></script>
 <script type="text/javascript" src="tests/specs/FoldersSpec.js"></script>
 <script type="text/javascript" src="tests/specs/CollectionsSpec.js"></script>
 <script type="text/javascript" src="tests/specs/RequestsSpec.js"></script>
-<script type="text/javascript" src="tests/specs/RequestsWithVariablesSpec.js"></script>
+<script type="text/javascript" src="tests/specs/RequestsWithVariablesSpec.js"></script> -->
 <script type="text/javascript" src="tests/specs/HelpersSpec.js"></script>
 <script type="text/javascript" src="tests/specs/UtilSpec.js"></script>

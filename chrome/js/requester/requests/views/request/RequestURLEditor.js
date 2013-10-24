@@ -10,7 +10,7 @@ var RequestURLEditor = Backbone.View.extend({
 
         model.on("change:url", this.onChangeUrl, this);
         model.on("updateURLInputText", this.onUpdateURLInputText, this);
-        model.on("startNew", this.onStartNew, this);        
+        model.on("startNew", this.onStartNew, this);
         model.on("customURLParamUpdate", this.onCustomUrlParamUpdate, this);
 
         var params = {
@@ -19,35 +19,21 @@ var RequestURLEditor = Backbone.View.extend({
             deleteButton:'<img class="deleteButton" src="img/delete.png">',
             onDeleteRow:function () {
                 var params = view.getUrlEditorParams();
+                // TODO Simplify this
+                model.set("url", $("#url").val());
                 model.setUrlParams(params);
                 model.setUrlParamString(view.getUrlEditorParams(), true);
             },
 
             onBlurElement:function () {
                 var params = view.getUrlEditorParams();
+                model.set("url", $("#url").val());
                 model.setUrlParams(params);
                 model.setUrlParamString(view.getUrlEditorParams(), true);
             }
         };
 
         $(editorId).keyvalueeditor('init', params);
-
-        $('#url-keyvaleditor-actions-close').on("click", function () {
-            view.closeUrlEditor();
-        });
-
-        $('#url-keyvaleditor-actions-open').on("click", function () {
-            var isDisplayed = $('#url-keyvaleditor-container').css("display") === "block";
-            if (isDisplayed) {
-                view.closeUrlEditor();
-            }
-            else {
-                var newRows = getUrlVars($('#url').val(), false);
-                $(editorId).keyvalueeditor('reset', newRows);
-                view.openUrlEditor();
-            }
-
-        });
 
         $('#url').keyup(function () {
             var newRows = getUrlVars($('#url').val(), false);
@@ -73,7 +59,7 @@ var RequestURLEditor = Backbone.View.extend({
         catch(e) {
 
         }
-        
+
         $(document).bind('keydown', 'backspace', urlFocusHandler);
     },
 
@@ -103,7 +89,13 @@ var RequestURLEditor = Backbone.View.extend({
 
     updateModel: function() {
         this.model.set("url", $("#url").val());
-        this.model.setUrlParamString(this.getUrlEditorParams(), true);        
+        this.model.setUrlParamString(this.getUrlEditorParams(), true);
+    },
+
+    openAndInitUrlEditor: function() {
+        var newRows = getUrlVars($('#url').val(), false);
+        $("#url-keyvaleditor").keyvalueeditor('reset', newRows);
+        this.openUrlEditor();
     },
 
     openUrlEditor:function () {

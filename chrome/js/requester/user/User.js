@@ -35,10 +35,11 @@ var User = Backbone.Model.extend({
 				model.set("name", u.name);
 				model.set("access_token", u.access_token);
 				model.set("refresh_token", u.refresh_token);
-				model.set("expires_in", u.expires_in);
-				model.set("logged_in_at", u.logged_in_at);
 
-				console.log(u);
+				var expires_in = parseInt(u.expires_in, 10);
+
+				model.set("expires_in", expires_in);
+				model.set("logged_in_at", u.logged_in_at);
 
 				if (pm.features.isFeatureEnabled(FEATURES.USER)) {
 					if (u.id !== 0) {
@@ -68,9 +69,11 @@ var User = Backbone.Model.extend({
 	setAccessToken: function(data) {
 		var model = this;
 
+		var expires_in = parseInt(data.expires_in, 10);
+
 		model.set("access_token", data.access_token);
 		model.set("refresh_token", data.refresh_token);
-		model.set("expires_in", data.expires_in);
+		model.set("expires_in", expires_in);
 		model.set("logged_in_at", new Date().getTime());
 
 		pm.storage.setValue({"user": model.toJSON()}, function() {
@@ -92,9 +95,10 @@ var User = Backbone.Model.extend({
 	login: function() {
 		var model = this;
 
-		chrome.identity.launchWebAuthFlow({'url': pm.webUrl + '/client-login', 'interactive': true},
+		chrome.identity.launchWebAuthFlow({'url': pm.webUrl + '/signup', 'interactive': true},
 			function(redirect_url) {
 				if (chrome.runtime.lastError) {
+					model.trigger("logout", model);
 					pm.mediator.trigger("notifyError", "Could not initiate OAuth 2 flow");
 				}
 				else {
@@ -106,8 +110,6 @@ var User = Backbone.Model.extend({
 					model.set("refresh_token", decodeURIComponent(params.refresh_token));
 					model.set("expires_in", parseInt(params.expires_in, 10));
 					model.set("logged_in_at", new Date().getTime());
-
-					console.log(model.toJSON());
 
 					pm.storage.setValue({"user": model.toJSON()}, function() {
 					});
@@ -135,20 +137,20 @@ var User = Backbone.Model.extend({
 	getCollections: function() {
 		var model = this;
 
-		pm.api.getUserCollections(function(data) {
-	    	if (data.hasOwnProperty("collections")) {
-		    	for(var i = 0; i < data.collections.length; i++) {
-		    		c = data.collections[i];
-		    		c.is_public = c.is_public === "1" ? true : false;
-		    		c.updated_at_formatted = new Date(c.updated_at).toDateString();
+		if (this.isLoggedIn()) {
+			pm.api.getUserCollections(function(data) {
+		    	if (data.hasOwnProperty("collections")) {
+			    	for(var i = 0; i < data.collections.length; i++) {
+			    		c = data.collections[i];
+			    		c.is_public = c.is_public === "1" ? true : false;
+			    		c.updated_at_formatted = new Date(c.updated_at).toDateString();
+			    	}
+
+			    	model.set("collections", data.collections);
+			    	model.trigger("change:collections");
 		    	}
-
-		    	console.log("Setting collections", data.collections);
-
-		    	model.set("collections", data.collections);
-		    	model.trigger("change:collections");
-	    	}
-		});
+			});
+		}
 	},
 
 	onDeleteSharedCollection: function(id) {
@@ -157,7 +159,6 @@ var User = Backbone.Model.extend({
 			var collections = model.get("collections");
 			var index = arrayObjectIndexOf(collections, id, "id");
 			var collection = _.clone(collections[index]);
-			console.log(collection);
 
 			if (index >= 0) {
 				collections.splice(index, 1);
@@ -169,9 +170,13 @@ var User = Backbone.Model.extend({
 		});
 	},
 
-	downloadSharedCollection: function(id) {
+	downloadSharedCollection: function(id, callback) {
 		pm.api.getCollectionFromRemoteId(id, function(data) {
 			pm.mediator.trigger("overwriteCollection", data);
+
+			if (callback) {
+				callback();
+			}
 		});
 	},
 
@@ -184,6 +189,22 @@ var User = Backbone.Model.extend({
 
 		for(var i = 0; i < collections.length; i++) {
 			this.downloadSharedCollection(collections[i].remote_id);
+		}
+	},
+
+	getRemoteIdForLinkId: function(linkId) {
+		var link = pm.webUrl + "/collections/" + linkId;
+
+		console.log("Link = ", link);
+
+		var collections = this.get("collections");
+		var index = arrayObjectIndexOf(collections, link, "link");
+
+		if (index >= 0) {
+			return collections[index].remote_id;
+		}
+		else {
+			return 0;
 		}
 	}
 

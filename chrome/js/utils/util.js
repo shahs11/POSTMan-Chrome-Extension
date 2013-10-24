@@ -248,6 +248,7 @@ function copyToClipboard(text){
     document.body.removeChild(copyDiv);
 }
 
+//Usage arrayObjectIndexOf(items, "Washington", "city");
 function arrayObjectIndexOf(myArray, searchTerm, property) {
     for(var i = 0, len = myArray.length; i < len; i++) {
         if (myArray[i][property] === searchTerm) return i;
@@ -284,4 +285,83 @@ function splitSyncableFilename(name) {
         "id": parts[0],
         "type": parts[1]
     };
+}
+
+/*
+    Get path variables from the URL
+*/
+
+function getURLPathVariables(url) {
+    if (!url) {
+        return [];
+    }
+
+    var quesLocation = url.indexOf('?');
+    var strippedUrl;
+
+    if (quesLocation > 0) {
+        strippedUrl = url.substr(0, quesLocation);
+    }
+    else {
+        strippedUrl = url;
+    }
+
+    var pattern = /\/:[0-9A-Za-z_-]*/ig;
+
+    var matches = strippedUrl.match(pattern);
+    var pairs = [];
+    var i;
+    var s;
+
+    if (matches) {
+        for(i = 0; i < matches.length; i++) {
+            s = matches[i].substr(2);
+            pairs.push(s);
+        }
+    }
+
+    return pairs;
+}
+
+/*
+    Replace path variables with values
+*/
+function replaceURLPathVariables(url, values) {
+    if (!url) {
+        return url;
+    }
+
+    var quesLocation = url.indexOf('?');
+    var strippedUrl;
+
+    if (quesLocation > 0) {
+        strippedUrl = url.substr(0, quesLocation);
+    }
+    else {
+        strippedUrl = url;
+    }
+
+    var pattern = /\/:[0-9A-Za-z_-]*/ig;
+
+    var matches = strippedUrl.match(pattern);
+    var pairs = [];
+    var i;
+    var key;
+    var val;
+
+    var finalUrl = url;
+
+    if (matches) {
+        for(i = 0; i < matches.length; i++) {
+            key = matches[i].substr(2);
+
+            if (key in values) {
+                val = '/' + values[key];
+                finalUrl = finalUrl.replace('/:' + key, val);
+            }
+        }
+    }
+
+    console.log(finalUrl);
+    return finalUrl;
 }

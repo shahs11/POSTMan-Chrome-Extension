@@ -8,6 +8,7 @@ var RequestEditor = Backbone.View.extend({
         this.requestMetaViewer = new RequestMetaViewer({model: this.model});
         this.requestMethodEditor = new RequestMethodEditor({model: this.model});
         this.requestHeaderEditor = new RequestHeaderEditor({model: this.model});
+        this.requestURLPathVariablesEditor = new RequestURLPathVariablesEditor({model: this.model});
         this.requestURLEditor = new RequestURLEditor({model: this.model});
         this.requestBodyEditor = new RequestBodyEditor({model: this.model});
         this.requestClipboard = new RequestClipboard({model: this.model});
@@ -24,17 +25,36 @@ var RequestEditor = Backbone.View.extend({
         this.on("send", this.onSend, this);
         this.on("preview", this.onPreview, this);
 
+        $('#url-keyvaleditor-actions-close').on("click", function () {
+            view.requestURLPathVariablesEditor.closeEditor();
+            view.requestURLEditor.closeUrlEditor();
+        });
+
+        $('#url-keyvaleditor-actions-open').on("click", function () {
+            var isDisplayed = $('#url-keyvaleditor-container').css("display") === "block";
+            if (isDisplayed) {
+                view.requestURLPathVariablesEditor.closeEditor();
+                view.requestURLEditor.closeUrlEditor();
+            }
+            else {
+                view.requestURLPathVariablesEditor.openEditor();
+                view.requestURLEditor.openAndInitUrlEditor();
+            }
+        });
+
         $("#update-request-in-collection").on("click", function () {
             view.updateModel();
 
             var current = model.getAsObject();
+
             var collectionRequest = {
                 id: model.get("collectionRequestId"),
-                url: current.url,
-                data: current.data,
                 headers: current.headers,
-                dataMode: current.dataMode,
+                url: current.url,
+                pathVariables: current.pathVariables,
                 method: current.method,
+                data: current.data,
+                dataMode: current.dataMode,
                 version: current.version,
                 time: new Date().getTime()
             };
@@ -133,8 +153,17 @@ var RequestEditor = Backbone.View.extend({
         $('#update-request-in-collection').css("display", "none");
     },
 
+    /*
+    Called before
+    1. Sending
+    2. Previewing
+    3. Saving to a collection
+    4. Adding to a collection
+    5. Processing OAuth and Digest params
+    */
     updateModel: function() {
         this.requestHeaderEditor.updateModel();
+        this.requestURLPathVariablesEditor.updateModel();
         this.requestURLEditor.updateModel();
         this.requestBodyEditor.updateModel();
     },
@@ -175,6 +204,7 @@ var RequestEditor = Backbone.View.extend({
         var method = model.get("method");
         var isMethodWithBody = model.isMethodWithBody(method);
         var url = model.get("url");
+        var pathVariables = model.get("pathVariables");
         var headers = model.get("headers");
         var data = model.get("data");
         var name = model.get("name");
@@ -207,6 +237,8 @@ var RequestEditor = Backbone.View.extend({
         //@todoSet params using keyvalueeditor function
         $('#url-keyvaleditor').keyvalueeditor('reset', newUrlParams);
         $('#headers-keyvaleditor').keyvalueeditor('reset', headers);
+
+        this.requestURLPathVariablesEditor.loadEditorParams(pathVariables);
 
         $('#request-method-selector').val(method);
 

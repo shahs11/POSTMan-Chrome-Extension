@@ -1,5 +1,6 @@
 var ResponseBodyViewer = Backbone.View.extend({
     initialize: function() {
+        var view = this;
         var model = this.model;
         var response = model.get("response");
         response.on("finishedLoadResponse", this.load, this);
@@ -10,6 +11,20 @@ var ResponseBodyViewer = Backbone.View.extend({
 
         this.responseBodyImageViewer = new ResponseBodyImageViewer({model: this.model});
         this.responseBodyPDFViewer = new ResponseBodyPDFViewer({model: this.model});
+
+        $(document).bind('keydown', 'ctrl+f', function() {
+            view.searchResponse();
+        });
+
+        $(document).bind('keydown', 'meta+f', function() {
+            view.searchResponse();
+        });
+
+    },
+
+    searchResponse: function() {
+        this.changePreviewType("parsed");
+        CodeMirror.commands.find(this.responseBodyPrettyViewer.codeMirror);
     },
 
     downloadBody: function(response) {
@@ -46,6 +61,8 @@ var ResponseBodyViewer = Backbone.View.extend({
         var presetPreviewType = pm.settings.getSetting("previewType");
         var language = response.get("language");
         var text = response.get("text");
+
+        var activeDataSection = pm.settings.getSetting("responsePreviewDataSection");
 
         var action = model.get("action");
 
@@ -85,6 +102,10 @@ var ResponseBodyViewer = Backbone.View.extend({
             }
             else {
                 this.displayTextResponse(language, text, presetPreviewType, true);
+            }
+
+            if (activeDataSection !== "body") {
+                $("#response-data-container").css("display", "none");
             }
         }
     },
@@ -323,6 +344,8 @@ var ResponseBodyViewer = Backbone.View.extend({
             $('#response-data').css("background-color", "#fff");
             $('#response-data').css("padding", "0px");
         }
+
+        $('#response-body-toggle').focus();
 
         response.set("state", state);
     },

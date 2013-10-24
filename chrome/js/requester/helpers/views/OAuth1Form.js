@@ -27,6 +27,10 @@ var OAuth1Form = Backbone.View.extend({
                 $('#request-helper-oAuth1 .request-helper-submit').css("display", "none");
             }
         });
+
+        $('#request-helper-oauth1-header').click(function () {
+            view.save();
+        });
     },
 
     clearFields: function() {
@@ -34,7 +38,7 @@ var OAuth1Form = Backbone.View.extend({
         $("#request-helper-oauth1-consumerSecret").val("");
         $("#request-helper-oauth1-token").val("");
         $("#request-helper-oauth1-tokenSecret").val("");
-        $("#request-helper-oauth1-signatureMethod").val("");
+        $("#request-helper-oauth1-signatureMethod").val("HMAC-SHA1");
         $("#request-helper-oauth1-timestamp").val("");
         $("#request-helper-oauth1-nonce").val("");
         $("#request-helper-oauth1-version").val("");
@@ -49,7 +53,7 @@ var OAuth1Form = Backbone.View.extend({
             consumerSecret: "",
             token: "",
             tokenSecret: "",
-            signatureMethod: "",
+            signatureMethod: "HMAC-SHA1",
             timestamp: "",
             nonce: "",
             version: "",

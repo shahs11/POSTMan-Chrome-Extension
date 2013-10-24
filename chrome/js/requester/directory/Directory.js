@@ -27,6 +27,14 @@ var Directory = Backbone.Collection.extend({
 
     isInitialized: false,
 
+    reload: function() {
+        this.startId = 0;
+        this.fetchCount = 42;
+        this.lastCount = 0;
+        this.totalCount = 0;
+        this.getCollections(this.startId, this.fetchCount, "descending");
+    },
+
     initialize: function() {
     	pm.mediator.on("initializeDirectory", this.onInitializeDirectory, this);
         pm.mediator.on("getDirectoryCollection", this.onGetDirectoryCollection, this);
@@ -89,18 +97,32 @@ var Directory = Backbone.Collection.extend({
         });
     },
 
-    downloadCollection: function(link_id) {
-        pm.api.downloadDirectoryCollection(link_id, function (data) {
-            try {
-                var collection = data;
+    downloadCollection: function(linkId) {
+        // TODO Check if the collection is uploaded by the user
+        // TODO Download using remote ID
+        var remoteId = pm.user.getRemoteIdForLinkId(linkId);
+
+        console.log("Found remoteId", remoteId);
+        if (remoteId) {
+            pm.user.downloadSharedCollection(remoteId, function() {
+
                 pm.mediator.trigger("notifySuccess", "Downloaded collection");
-                pm.mediator.trigger("addDirectoryCollection", collection);
-            }
-            catch(e) {
-                pm.mediator.trigger("notifyError", "Failed to download collection");
-                pm.mediator.trigger("failedCollectionImport");
-            }
-        });
+            });
+        }
+        else {
+            pm.api.downloadDirectoryCollection(linkId, function (data) {
+                try {
+                    var collection = data;
+                    pm.mediator.trigger("notifySuccess", "Downloaded collection");
+
+                    pm.mediator.trigger("addDirectoryCollection", collection);
+                }
+                catch(e) {
+                    pm.mediator.trigger("notifyError", "Failed to download collection");
+                    pm.mediator.trigger("failedCollectionImport");
+                }
+            });
+        }
     }
 
 });

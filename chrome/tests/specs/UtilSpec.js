@@ -3,42 +3,169 @@ describe("Postman utility functions", function() {
   beforeEach(function() {
   });
 
+  describe("getURLPathVariables", function() {
+    it("should return an empty array for null URL", function() {
+        var url;
+        var vars = getURLPathVariables(url);
+        expect(vars.length).toBe(0);
+    });
+
+    it("should return an empty array for URL with no segments", function() {
+        var url = "http://localhost/";
+        var vars = getURLPathVariables(url);
+        expect(vars.length).toBe(0);
+    });
+
+    it("should return an empty array for URL with no segments and a port", function() {
+        var url = "http://localhost:5000/";
+        var vars = getURLPathVariables(url);
+        expect(vars.length).toBe(0);
+    });
+
+    it("should return an empty array for URL with no segments and url params", function() {
+        var url = "http://localhost:5000/?foo=bar&something=wow";
+        var vars = getURLPathVariables(url);
+        expect(vars.length).toBe(0);
+    });
+
+    it("should return an empty array for URL with no segments and url params which have a colon", function() {
+        var url = "http://localhost:5000/?foo=bar&something=wow:awesome:stuff:is:happening";
+        var vars = getURLPathVariables(url);
+        expect(vars.length).toBe(0);
+    });
+
+    it("should return key/val pairs for one path variable ending at the string end", function() {
+        var url = "http://localhost/:user_id";
+        var vars = getURLPathVariables(url);
+        expect(vars.length).toBe(1);
+    });
+
+    it("should return key/val pairs for two path variables with one ending at the string end", function() {
+        var url = "http://localhost/:user_id/:category";
+        var vars = getURLPathVariables(url);
+        expect(vars.length).toBe(2);
+    });
+
+    it("should return key/val pairs for path variable ending with /", function() {
+        var url = "http://localhost/:user_id/";
+        var vars = getURLPathVariables(url);
+        expect(vars.length).toBe(1);
+    });
+
+    it("should return key/val pairs for two path variables with one ending with /", function() {
+        var url = "http://localhost/:user_id/:category/";
+        var vars = getURLPathVariables(url);
+        expect(vars.length).toBe(2);
+    });
+  });
+
+describe("replaceURLPathVariables", function() {
+  it("should return an empty array for URL with no segments", function() {
+      var url = "http://localhost/";
+      var replacedUrl = replaceURLPathVariables(url, []);
+      expect(replacedUrl).toBe(url);
+  });
+
+  it("should return an empty array for URL with no segments and a port", function() {
+      var url = "http://localhost:5000/";
+      var replacedUrl = replaceURLPathVariables(url, []);
+      expect(replacedUrl).toBe(url);
+  });
+
+  it("should return an empty array for URL with no segments and url params", function() {
+      var url = "http://localhost:5000/?foo=bar&something=wow";
+      var replacedUrl = replaceURLPathVariables(url, []);
+      expect(url).toBe(url);
+  });
+
+  it("should return an empty array for URL with no segments and url params which have a colon", function() {
+      var url = "http://localhost:5000/?foo=bar&something=wow:awesome:stuff:is:happening";
+      var replacedUrl = replaceURLPathVariables(url, []);
+      expect(replacedUrl).toBe(url);
+  });
+
+  it("should return key/val pairs for one path variable ending at the string end", function() {
+      var url = "http://localhost/:user_id";
+      var vals = {
+        "user_id": 1002
+      };
+
+      var replacedUrl = replaceURLPathVariables(url, vals);
+      expect(replacedUrl).toBe("http://localhost/1002");
+  });
+
+  it("should return key/val pairs for two path variables with one ending at the string end", function() {
+      var url = "http://localhost/:user_id/:category";
+
+      var vals = {
+        "user_id": 1002,
+        "category": "photos"
+      };
+
+      var replacedUrl = replaceURLPathVariables(url, vals);
+
+      expect(replacedUrl).toBe("http://localhost/1002/photos");
+  });
+
+  it("should return key/val pairs for path variable ending with /", function() {
+      var url = "http://localhost/:user_id/";
+      var vals = {
+        "user_id": 1002
+      };
+
+      var replacedUrl = replaceURLPathVariables(url, vals);
+      expect(replacedUrl).toBe("http://localhost/1002/");
+  });
+
+  it("should return key/val pairs for two path variables with one ending with /", function() {
+      var url = "http://localhost/:user_id/:category/";
+      var vals = {
+        "user_id": 1002,
+        "category": "photos"
+      };
+
+      var replacedUrl = replaceURLPathVariables(url, vals);
+
+      expect(replacedUrl).toBe("http://localhost/1002/photos/");
+  });
+});
+
   describe("getUrlVars", function() {
-    it("should split URL with no arguments", function() {    
+    it("should split URL with no arguments", function() {
       var url = "http://localhost/?";
       var vars = getUrlVars(url);
       expect(vars.length).toBe(0);
     });
 
-    it("should split URL with ?=", function() {    
+    it("should split URL with ?=", function() {
       var url = "http://localhost/?=";
       var vars = getUrlVars(url);
       expect(vars.length).toBe(1);
     });
 
-    it("should split URL with 1 argument", function() {    
+    it("should split URL with 1 argument", function() {
       var url = "http://localhost/?foo=bar";
       var vars = getUrlVars(url);
       expect(vars.length).toBe(1);
     });
 
-    it("should split URL with multiple arguments into key/val pairs", function() {    
+    it("should split URL with multiple arguments into key/val pairs", function() {
       var url = "http://localhost/?foo=bar&test=blah";
       var vars = getUrlVars(url);
       expect(vars.length).toBe(2);
-    });    
+    });
 
     // #130: Key and value modified if value contains ?xxxx=
     // https://github.com/a85/POSTMan-Chrome-Extension/issues/130
-    it("should not split values with ?", function() {    
+    it("should not split values with ?", function() {
       var url = 'http://localhost/?foo=bar&test=<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
       var vars = getUrlVars(url);
       expect(vars.length).toBe(2);
-    });     
+    });
 
     // #174: Semicolon not working in URL
     // https://github.com/a85/POSTMan-Chrome-Extension/issues/174?source=cc
-    it("should not split values with ;", function() {    
+    it("should not split values with ;", function() {
      var url = 'http://www.example.com/path;jsessionid=abc';
      var vars = getUrlVars(url);
      expect(vars.length).toBe(0);
@@ -83,7 +210,7 @@ describe("Postman utility functions", function() {
       expect(sorted[2].name).toBe("cow");
     });
   });
-  
+
   describe("getBodyVars", function() {
     it("should return body with single variable", function() {
       var body = "foo=bar";

@@ -4,10 +4,17 @@
     margin-top: -5px;
     display: none;
     padding-bottom: 50px;
+    overflow-y: scroll;
+
+    .directory-browser-header {
+        cursor: pointer;
+    }
 
     #directory-collections {
         margin-top: 5px;
         margin-bottom: 25px;
+        overflow-y: scroll;
+        padding-bottom: 10px;
     }
 
     .directory-browser-header {
@@ -23,8 +30,8 @@
     }
 
     .directory-collection {
-        height: 215px;
-        width: 255px;
+        height: 200px;
+        width: 250px;
         overflow: hidden;
         border: solid thin #fff;
         float: left;

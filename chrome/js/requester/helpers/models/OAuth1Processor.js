@@ -7,7 +7,7 @@ var OAuth1Processor = Backbone.Model.extend({
             "consumerSecret": "",
             "token": "",
             "tokenSecret": "",
-            "signatureMethod": "",
+            "signatureMethod": "HMAC-SHA1",
             "timestamp": "",
             "nonce": "",
             "version": "",
@@ -60,7 +60,8 @@ var OAuth1Processor = Backbone.Model.extend({
         if(this.get("signatureMethod" === "")) {
             this.set("signatureMethod", "HMAC-SHA1");
         }
-        this.set("timestamp", OAuth.timestamp());
+
+        this.set("timestamp", OAuth.timestamp() + "");
         this.set("nonce", OAuth.nonce(6));
     },
 
@@ -88,13 +89,7 @@ var OAuth1Processor = Backbone.Model.extend({
         var method = request.get("method");
         var requestBody = request.get("body");
 
-        if (realm === '') {
-            processedUrl = pm.envManager.getCurrentValue(url).trim();
-        }
-        else {
-            processedUrl = pm.envManager.getCurrentValue(realm);
-        }
-
+        processedUrl = pm.envManager.getCurrentValue(url).trim();
         processedUrl = ensureProperUrl(processedUrl);
 
         if (processedUrl.indexOf('?') > 0) {
@@ -125,15 +120,28 @@ var OAuth1Processor = Backbone.Model.extend({
         //Get parameters
         var urlParams = request.getUrlParams();
 
-        var bodyParams = requestBody.get("dataAsObjects");
+        var bodyParams;
+
+        if (pm.methods.isMethodWithBody(method)) {
+            bodyParams = requestBody.get("dataAsObjects");
+        }
+        else {
+            bodyParams = [];
+        }
 
         var params = _.union(urlParams, bodyParams);
+        var param;
+        var existingOAuthParams = _.union(signatureParams, [{key: "oauth_signature", value: ""}]);
+        var pos;
 
         for (i = 0; i < params.length; i++) {
-            var param = params[i];
+            param = params[i];
             if (param.key) {
-                param.value = pm.envManager.getCurrentValue(param.value);
-                message.parameters.push([param.key, param.value]);
+                pos = findPosition(existingOAuthParams, "key", param.key);
+                if (pos < 0) {
+                    param.value = pm.envManager.getCurrentValue(param.value);
+                    message.parameters.push([param.key, param.value]);
+                }
             }
         }
 
@@ -233,17 +241,8 @@ var OAuth1Processor = Backbone.Model.extend({
 
         if (addToHeader) {
             var realm = this.get("realm");
-
-            if (realm === '') {
-                realm = pm.envManager.getCurrentValue(url.trim());
-            }
-
-            if (realm.indexOf('?') > 0) {
-                realm = realm.split("?")[0];
-            }
-
             var authHeaderKey = "Authorization";
-            var rawString = "OAuth realm=\"" + realm + "\",";
+            var rawString = "OAuth realm=\"" + encodeURIComponent(realm) + "\",";
             var len = oAuthParams.length;
 
             for (i = 0; i < len; i++) {
