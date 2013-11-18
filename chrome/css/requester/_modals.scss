@@ -29,3 +29,13 @@
 #modal-header-presets .modal-footer {
     display: none;
 }
+
+#modal-tcp-manager {
+	.status-connected {
+		color: green;
+	}
+
+	.status-disconnected {
+		color: red;
+	}
+}

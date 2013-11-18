@@ -89,6 +89,14 @@ pm.init = function () {
         pm.tester = tester;
     }
 
+    function initializeTCPReader() {
+        var tcpReader = new TCPReader();
+        var tcpReaderStatus = new TCPReaderStatus({model: tcpReader});
+        var tcpManager = new TCPManager({model: tcpReader});
+
+        pm.tcpReader = tcpReader;
+    }
+
     function initializePostmanAPI() {
         pm.api = new PostmanAPI();
     }
@@ -260,11 +268,34 @@ pm.init = function () {
                 initializeUser();
                 initializeDirectory();
 
+                initializeTCPReader();
+
                 pm.hasPostmanInitialized = true;
             });
         });
     });
 };
+
+var GruntLiveReload = GruntLiveReload || {};
+GruntLiveReload.init = function() {
+  var ws = new WebSocket("ws://localhost:35729/livereload");
+  ws.onopen = function() {
+    console.log("LiveReload WebSocket initialized and ready.");
+  };
+  ws.onmessage = function(evt) {
+    var wsData = JSON.parse(evt.data);
+    if (wsData.command == "reload") {
+      chrome.runtime.reload();
+    } else {
+      console.log("LiveReload Message", evt.data);
+    }
+  };
+  ws.onerror = function(evt) {
+    console.error("LiveReload WebSocket Error", evt);
+  };
+};
+
+// GruntLiveReload.init();
 
 $(document).ready(function () {
     pm.init();

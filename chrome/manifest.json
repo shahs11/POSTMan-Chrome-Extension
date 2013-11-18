@@ -1,6 +1,7 @@
 {
     "name":"Postman - REST Client (Packaged app)",
-    "version":"0.9.3.9",
+    "short_name": "Postman",
+    "version":"0.9.4.1",
     "minimum_chrome_version": "28",
     "icons":{
         "16":"icon_16.png",
@@ -39,7 +40,11 @@
         "fileSystem",
         "fileSystem.write",
         "identity",
-        "syncFileSystem"
+        "syncFileSystem",
+        {"socket": [
+          "tcp-connect:*:*",
+          "tcp-listen:*:*"
+        ]}
         ],
     "manifest_version": 2,
     "offline_enabled":true

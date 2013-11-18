@@ -65,7 +65,10 @@ module.exports = function(grunt) {
     watch: {
       requester_templates: {
         files: ['chrome/html/requester/templates/*'],
-        tasks: ['handlebars']
+        tasks: ['handlebars'],
+        options: {
+          livereload: true
+        }
       },
 
       requester_js: {
@@ -75,7 +78,10 @@ module.exports = function(grunt) {
 
       requester_html: {
         files: ['chrome/html/requester/*', 'chrome/html/requester/modals/*', 'chrome/html/requester/loggers/*'],
-        tasks: ['concat:requester_html', 'concat:requester_tester']
+        tasks: ['concat:requester_html', 'concat:requester_tester'],
+        options: {
+          livereload: true
+        }
       },
 
       requester_css: {
