@@ -20,6 +20,33 @@ var Features = Backbone.Model.extend({
 		return this.get(feature);
 	}
 })
+var TestRunApp = Backbone.View.extend({
+	initialize: function() {
+		console.log("Initialized the test runner");
+
+		var resizeTimeout;
+
+		$(window).on("resize", function () {
+		    clearTimeout(resizeTimeout);
+		    resizeTimeout = setTimeout(function() {
+		        view.setLayout();
+		    }, 500);
+		});
+
+		this.setLayout();
+	},
+
+	setLayout:function () {
+	    this.refreshScrollPanes();
+	},
+
+	refreshScrollPanes:function () {
+	    var newMainHeight = $(document).height() - 55;
+	    $('#main').height(newMainHeight + "px");
+	    var newMainWidth = $('#container').width() - $('#sidebar').width() - 10;
+	    $('#main').width(newMainWidth + "px");
+	}
+});
 /*
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
@@ -105,6 +132,11 @@ window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileS
 pm.init = function () {
     Handlebars.partials = Handlebars.templates;
 
+    function initializeTester() {
+        var tester = new Tester();
+        pm.tester = tester;
+    }
+
     function initializePostmanAPI() {
         pm.api = new PostmanAPI();
     }
@@ -136,8 +168,8 @@ pm.init = function () {
             "variableProcessor": variableProcessor
         });
 
-        // var appView = new App({model: appState});
-        // pm.app = appView;
+        var appView = new TestRunApp({model: appState});
+        pm.app = appView;
     }
 
     function initializeHeaderPresets() {
@@ -159,11 +191,31 @@ pm.init = function () {
         pm.methods = requestMethods;
     }
 
-    function initializeUser() {
-        // var header = new Header();
+    function initializeSidebar() {
+    	var state = new TestRunnerSidebarState();
+    	var sidebar = new TestRunnerSidebar({model: state});
+	}
 
+    function initializeUser() {
         var user = new User();
         pm.user = user;
+    }
+
+    function initializeTestRunner() {
+    	var testRuns = new TestRuns();
+    	var testRunnerSidebarState = new TestRunnerSidebarState({testRuns: testRuns});
+    	var testRunnerSidebar = new TestRunnerSidebar({model: testRunnerSidebarState});
+
+    	var o = {
+    		"collections": pm.collections,
+    		"envManager": pm.envManager,
+    		"testRuns": testRuns
+    	};
+
+        var testRunStarterState = new TestRunStarterState(o);
+    	var testRunStarter = new TestRunStarter({model: testRunStarterState});
+
+    	pm.testRuns = testRuns;
     }
 
     pm.mediator = new Mediator();
@@ -176,17 +228,18 @@ pm.init = function () {
         pm.settings.init(function() {
             pm.filesystem.init();
             pm.indexedDB.open(function() {
+            	initializeTester();
                 initializePostmanAPI();
                 initializeRequester();
                 initializeHistory();
                 initializeCollections();
-
                 initializeEnvironments();
                 initializeHeaderPresets();
-
-                // initializeSidebar();
-
+                initializeSidebar();
                 initializeUser();
+
+                // Test runner specific initializations
+                initializeTestRunner();
 
                 pm.hasPostmanInitialized = true;
             });
@@ -196,6 +249,118 @@ pm.init = function () {
 
 $(document).ready(function () {
     pm.init();
+});
+var TestRunnerSidebarState = Backbone.Model.extend({
+	defaults: function() {
+		return {
+		}
+	},
+
+	initialize: function() {
+
+	}
+});
+var TestRunnerSidebar = Backbone.View.extend({
+	initialize: function() {
+
+	}
+});
+var TestRunStarter = Backbone.View.extend({
+	initialize: function() {
+		var model = this.model;
+
+		model.on("loadedCollections", this.renderCollections, this);
+		model.on("loadedEnvironments", this.renderEnvironments, this);
+	},
+
+	renderCollections: function() {
+		var model = this.model;
+		var items = _.clone(model.get("collections").toJSON());
+
+		for(var i = 0; i < items.length; i++) {
+		    if("folders" in items[i]) {
+		        folders = items[i].folders;
+
+		        folders.sort(sortAlphabetical);
+
+		        for(var j = 0; j < folders.length; j++) {
+		            folders[j].collection_name = items[i].name;
+		            folders[j].collection_id = items[i].id;
+		        }
+		    }
+		}
+
+		$('#select-collection').html("<option>Select</option>");
+		$('#select-collection').append(Handlebars.templates.collection_selector_list({items: items}));
+	},
+
+	renderEnvironments: function() {
+		var model = this.model;
+		var items = _.clone(model.get("envManager").get("environments").toJSON());
+		$('#select-environment').html("<option>Select</option>");
+		$('#select-environment').append(Handlebars.templates.environment_list({items: items}));
+	}
+});
+var TestRunStarterState = Backbone.Model.extend({
+	defaults: function() {
+		return {
+			"collections": null,
+			"envManager": null,
+			"testRuns": null
+		}
+	},
+
+	initialize: function() {
+		var model = this;
+
+		var collections = this.get("collections");
+		var envManager = this.get("envManager");
+		var testRuns = this.get("testRuns");
+
+		pm.mediator.on("loadedCollections", function() {
+			model.trigger("loadedCollections");
+		});
+
+		pm.mediator.on("loadedEnvironments", function() {
+			model.trigger("loadedEnvironments");
+		});
+	}
+});
+var TestRun = Backbone.Model.extend({
+	defaults: function() {
+		return {
+			"id": "",
+			"name": "Default",
+			"timestamp": 0,
+			"collection": null,
+			"folder": null,
+			"environment": null,
+			"globals": null,
+			"results": ""
+		}
+	},
+
+	initialize: function() {
+
+	}
+});
+
+var TestRuns = Backbone.Collection.extend({
+	model: TestRun,
+
+	initialize: function() {
+		console.log("Initialized TestRuns");
+		this.loadAllTestRuns();
+	},
+
+	loadAllTestRuns: function() {
+		var collection = this;
+
+		pm.indexedDB.testRuns.getAllTestRuns(function(testRuns) {
+			collection.add(testRuns, { merge: true });
+			console.log("Loaded all test runs", collection.toJSON());;
+		});
+	}
 });
 var AppState = Backbone.Model.extend({
     defaults: function() {
@@ -209,6 +374,28 @@ var AppState = Backbone.Model.extend({
     initialize: function(options) {
     }
 });
+var FEATURES = {
+	USER: "user",
+	DIRECTORY: "directory",
+	DRIVE_SYNC: "drive_sync",
+	TESTER: "tester"
+};
+
+var Features = Backbone.Model.extend({
+	defaults: function() {
+		var obj = {};
+		obj[FEATURES.USER] = true;
+		obj[FEATURES.DIRECTORY] = true;
+		obj[FEATURES.DRIVE_SYNC] = false;
+		obj[FEATURES.TESTER] = true;
+
+	    return obj;
+	},
+
+	isFeatureEnabled: function(feature) {
+		return this.get(feature);
+	}
+})
 var Mediator = Backbone.Model.extend({
     defaults: function() {
         return {
@@ -643,6 +830,7 @@ var PmCollections = Backbone.Collection.extend({
                     pmCollection.trigger("startSync");
 
                     pm.mediator.trigger("refreshCollections");
+                    pm.mediator.trigger("loadedCollections");
                 }
             }
 
@@ -4071,12 +4259,13 @@ var Environments = Backbone.Collection.extend({
         this.startListeningForFileSystemSyncEvents();
 
         pm.indexedDB.environments.getAllEnvironments(function (environments) {
-
             environments.sort(sortAlphabetical);
             collection.add(environments, {merge: true});
 
             collection.isLoaded = true;
             collection.trigger("startSync");
+            collection.trigger("loadedEnvironments");
+            pm.mediator.trigger("loadedEnvironments");
         })
     },
 
@@ -11167,6 +11356,7 @@ pm.indexedDB = {
     TABLE_DRIVE_FILES: "drive_files",
     TABLE_DRIVE_CHANGES: "drive_changes",
     TABLE_OAUTH2_ACCESS_TOKENS: "oauth2_access_tokens",
+    TABLE_TEST_RUNS: "test_runs",
 
     onTransactionComplete: function(callback) {
         if (pm.isTesting) {
@@ -11187,7 +11377,7 @@ pm.indexedDB = {
 
         var request = indexedDB.open(pm.databaseName, "POSTman request history");
         request.onsuccess = function (e) {
-            var v = "0.7.5";
+            var v = "0.7.6";
             pm.indexedDB.db = e.target.result;
             var db = pm.indexedDB.db;
 
@@ -11257,6 +11447,11 @@ pm.indexedDB = {
                         accessTokenStore.createIndex("timestamp", "timestamp", { unique:false});
                     }
 
+                    if (!db.objectStoreNames.contains(pm.indexedDB.TABLE_TEST_RUNS)) {
+                        var environmentsStore = db.createObjectStore(pm.indexedDB.TABLE_TEST_RUNS, {keyPath:"id"});
+                        environmentsStore.createIndex("timestamp", "timestamp", { unique:false});
+                    }
+
                     var transaction = event.target.result;
                     transaction.oncomplete = pm.indexedDB.onTransactionComplete;
                 };
@@ -11270,7 +11465,7 @@ pm.indexedDB = {
     },
 
     open_latest:function (callback) {
-        var v = 21;
+        var v = 22;
         var request = indexedDB.open(pm.databaseName, v);
         request.onupgradeneeded = function (e) {
             console.log("Upgrade DB");
@@ -11327,6 +11522,11 @@ pm.indexedDB = {
             if (!db.objectStoreNames.contains(pm.indexedDB.TABLE_OAUTH2_ACCESS_TOKENS)) {
                 var accessTokenStore = db.createObjectStore(pm.indexedDB.TABLE_OAUTH2_ACCESS_TOKENS, {keyPath:"id"});
                 accessTokenStore.createIndex("timestamp", "timestamp", { unique:false});
+            }
+
+            if (!db.objectStoreNames.contains(pm.indexedDB.TABLE_TEST_RUNS)) {
+                var environmentsStore = db.createObjectStore(pm.indexedDB.TABLE_TEST_RUNS, {keyPath:"id"});
+                environmentsStore.createIndex("timestamp", "timestamp", { unique:false});
             }
         };
 
@@ -12324,6 +12524,103 @@ pm.indexedDB = {
             var db = pm.indexedDB.db;
             var trans = db.transaction([pm.indexedDB.TABLE_OAUTH2_ACCESS_TOKENS], "readwrite");
             var store = trans.objectStore(pm.indexedDB.TABLE_OAUTH2_ACCESS_TOKENS);
+
+            //Get everything in the store
+            var cursorRequest = store.get(id);
+
+            cursorRequest.onsuccess = function (e) {
+                var result = e.target.result;
+                callback(result);
+            };
+            cursorRequest.onerror = pm.indexedDB.onerror;
+        }
+    },
+
+    testRuns: {
+        addTestRun: function(testRun, callback) {
+            var db = pm.indexedDB.db;
+            var trans = db.transaction([pm.indexedDB.TABLE_TEST_RUNS], "readwrite");
+            var store = trans.objectStore(pm.indexedDB.TABLE_TEST_RUNS);
+            var request = store.put(testRun);
+
+            request.onsuccess = function (e) {
+                callback(testRun);
+            };
+
+            request.onerror = function (e) {
+                console.log(e);
+            };
+        },
+
+        deleteTestRun: function(id, callback) {
+            var db = pm.indexedDB.db;
+            var trans = db.transaction([pm.indexedDB.TABLE_TEST_RUNS], "readwrite");
+            var store = trans.objectStore(pm.indexedDB.TABLE_TEST_RUNS);
+
+            //Get everything in the store
+            var request = store['delete'](id);
+
+            request.onsuccess = function (e) {
+                callback(id);
+            };
+            request.onerror = pm.indexedDB.onerror;
+        },
+
+        getAllTestRuns: function(callback) {
+            var db = pm.indexedDB.db;
+            if (db === null) {
+                console.log("Db is null");
+                return;
+            }
+
+            var trans = db.transaction([pm.indexedDB.TABLE_TEST_RUNS], "readwrite");
+            var store = trans.objectStore(pm.indexedDB.TABLE_TEST_RUNS);
+
+            //Get everything in the store
+            var keyRange = IDBKeyRange.lowerBound(0);
+            var index = store.index("timestamp");
+            var cursorRequest = index.openCursor(keyRange);
+            var testRuns = [];
+
+            cursorRequest.onsuccess = function (e) {
+                var result = e.target.result;
+
+                if (!result) {
+                    callback(testRuns);
+                    return;
+                }
+
+                var request = result.value;
+                testRuns.push(request);
+
+                //This wil call onsuccess again and again until no more request is left
+                result['continue']();
+            };
+
+            cursorRequest.onerror = pm.indexedDB.onerror;
+        },
+
+        updateTestRun:function (testRun, callback) {
+            var db = pm.indexedDB.db;
+            var trans = db.transaction([pm.indexedDB.TABLE_TEST_RUNS], "readwrite");
+            var store = trans.objectStore(pm.indexedDB.TABLE_TEST_RUNS);
+
+            var boundKeyRange = IDBKeyRange.only(testRun.id);
+            var request = store.put(testRun);
+
+            request.onsuccess = function (e) {
+                callback(testRun);
+            };
+
+            request.onerror = function (e) {
+                console.log(e.value);
+            };
+        },
+
+        getTestRun: function(id, callback) {
+            var db = pm.indexedDB.db;
+            var trans = db.transaction([pm.indexedDB.TABLE_TEST_RUNS], "readwrite");
+            var store = trans.objectStore(pm.indexedDB.TABLE_TEST_RUNS);
 
             //Get everything in the store
             var cursorRequest = store.get(id);

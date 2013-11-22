@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="js/libs/codemirror/lib/codemirror.css"/>
     <link rel="stylesheet" type="text/css" href="js/libs/codemirror/theme/eclipse.css"/>
     <link rel="stylesheet" type="text/css" href="css/requester/styles.css"/>
+    <link rel="stylesheet" type="text/css" href="css/test_runner/styles.css"/>
     <link rel="stylesheet" type="text/css" href="css/keyvalueeditor.css"/>
 
     <!-- Google Analytics -->
@@ -76,8 +77,7 @@
     <div id="sidebar-sections" class="sidebar-sections clearfix">
         <div class="clearfix">
             <ul id="sidebar-selectors" class="request-helper-tabs sidebar-helper-tabs clearfix">
-                <li id="sidebar-selectors-history" data-id="history" class="active"><span>Run history</span></a></li>
-                <li id="sidebar-selectors-collections" data-id="collections"><span>Collections</span></li>
+                <li id="sidebar-selectors-history" data-id="history" class="active"><span>Runs</span></a></li>
             </ul>
         </div>
         <div id="sidebar-section-data" class="sidebar-section-data">
@@ -114,9 +114,51 @@
     </div>
 </div>
 <div id="main-container">
-<div id="sidebar-filler">
-</div>
 <div id="main" class="content">
+	<section id="test-run">
+		<div id="test-run-starter">
+			<div id="request-types" class="request-tabs-container clearfix">
+				<ul class="request-helper-tabs">
+				    <li class="active" data-id="normal">Start test run</li>
+				</ul>
+			</div>
+			<form class="form-horizontal">
+			    <div class="control-group">
+			        <label class="control-label" for="select-collection">Collection</label>
+
+			        <div class="controls">
+			            <select name="select-collection" class="medium" id="select-collection">
+			                <option value="_select">Select</option>
+			            </select>
+			        </div>
+			    </div>
+
+			    <div class="control-group">
+			        <label class="control-label" for="select-environment">Environment</label>
+
+			        <div class="controls">
+			            <select name="select-environment" class="medium" id="select-environment">
+			                <option value="_select">Select</option>
+			            </select>
+			        </div>
+			    </div>
+
+			    <div class="control-group">
+			        <label class="control-label" for="test-run-count">Counts</label>
+
+			        <div class="controls">
+			            <input type="text" name="test-run-count" id="test-run-count" value="1"/>
+			        </div>
+			    </div>
+
+			    <div class="control-group">
+			        <div class="controls">
+			            <a id="start-test-run" class="btn btn-primary">Start</a>
+			        </div>
+			    </div>
+			</form>
+		</div>
+	</section>
 </div>
 </div>
 </div> <!-- container div end -->

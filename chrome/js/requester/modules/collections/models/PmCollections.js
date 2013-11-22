@@ -94,6 +94,7 @@ var PmCollections = Backbone.Collection.extend({
                     pmCollection.trigger("startSync");
 
                     pm.mediator.trigger("refreshCollections");
+                    pm.mediator.trigger("loadedCollections");
                 }
             }
 

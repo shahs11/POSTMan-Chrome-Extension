@@ -4,6 +4,7 @@ pm.indexedDB = {
     TABLE_DRIVE_FILES: "drive_files",
     TABLE_DRIVE_CHANGES: "drive_changes",
     TABLE_OAUTH2_ACCESS_TOKENS: "oauth2_access_tokens",
+    TABLE_TEST_RUNS: "test_runs",
 
     onTransactionComplete: function(callback) {
         if (pm.isTesting) {
@@ -24,7 +25,7 @@ pm.indexedDB = {
 
         var request = indexedDB.open(pm.databaseName, "POSTman request history");
         request.onsuccess = function (e) {
-            var v = "0.7.5";
+            var v = "0.7.6";
             pm.indexedDB.db = e.target.result;
             var db = pm.indexedDB.db;
 
@@ -94,6 +95,11 @@ pm.indexedDB = {
                         accessTokenStore.createIndex("timestamp", "timestamp", { unique:false});
                     }
 
+                    if (!db.objectStoreNames.contains(pm.indexedDB.TABLE_TEST_RUNS)) {
+                        var environmentsStore = db.createObjectStore(pm.indexedDB.TABLE_TEST_RUNS, {keyPath:"id"});
+                        environmentsStore.createIndex("timestamp", "timestamp", { unique:false});
+                    }
+
                     var transaction = event.target.result;
                     transaction.oncomplete = pm.indexedDB.onTransactionComplete;
                 };
@@ -107,7 +113,7 @@ pm.indexedDB = {
     },
 
     open_latest:function (callback) {
-        var v = 21;
+        var v = 22;
         var request = indexedDB.open(pm.databaseName, v);
         request.onupgradeneeded = function (e) {
             console.log("Upgrade DB");
@@ -164,6 +170,11 @@ pm.indexedDB = {
             if (!db.objectStoreNames.contains(pm.indexedDB.TABLE_OAUTH2_ACCESS_TOKENS)) {
                 var accessTokenStore = db.createObjectStore(pm.indexedDB.TABLE_OAUTH2_ACCESS_TOKENS, {keyPath:"id"});
                 accessTokenStore.createIndex("timestamp", "timestamp", { unique:false});
+            }
+
+            if (!db.objectStoreNames.contains(pm.indexedDB.TABLE_TEST_RUNS)) {
+                var environmentsStore = db.createObjectStore(pm.indexedDB.TABLE_TEST_RUNS, {keyPath:"id"});
+                environmentsStore.createIndex("timestamp", "timestamp", { unique:false});
             }
         };
 
@@ -1161,6 +1172,103 @@ pm.indexedDB = {
             var db = pm.indexedDB.db;
             var trans = db.transaction([pm.indexedDB.TABLE_OAUTH2_ACCESS_TOKENS], "readwrite");
             var store = trans.objectStore(pm.indexedDB.TABLE_OAUTH2_ACCESS_TOKENS);
+
+            //Get everything in the store
+            var cursorRequest = store.get(id);
+
+            cursorRequest.onsuccess = function (e) {
+                var result = e.target.result;
+                callback(result);
+            };
+            cursorRequest.onerror = pm.indexedDB.onerror;
+        }
+    },
+
+    testRuns: {
+        addTestRun: function(testRun, callback) {
+            var db = pm.indexedDB.db;
+            var trans = db.transaction([pm.indexedDB.TABLE_TEST_RUNS], "readwrite");
+            var store = trans.objectStore(pm.indexedDB.TABLE_TEST_RUNS);
+            var request = store.put(testRun);
+
+            request.onsuccess = function (e) {
+                callback(testRun);
+            };
+
+            request.onerror = function (e) {
+                console.log(e);
+            };
+        },
+
+        deleteTestRun: function(id, callback) {
+            var db = pm.indexedDB.db;
+            var trans = db.transaction([pm.indexedDB.TABLE_TEST_RUNS], "readwrite");
+            var store = trans.objectStore(pm.indexedDB.TABLE_TEST_RUNS);
+
+            //Get everything in the store
+            var request = store['delete'](id);
+
+            request.onsuccess = function (e) {
+                callback(id);
+            };
+            request.onerror = pm.indexedDB.onerror;
+        },
+
+        getAllTestRuns: function(callback) {
+            var db = pm.indexedDB.db;
+            if (db === null) {
+                console.log("Db is null");
+                return;
+            }
+
+            var trans = db.transaction([pm.indexedDB.TABLE_TEST_RUNS], "readwrite");
+            var store = trans.objectStore(pm.indexedDB.TABLE_TEST_RUNS);
+
+            //Get everything in the store
+            var keyRange = IDBKeyRange.lowerBound(0);
+            var index = store.index("timestamp");
+            var cursorRequest = index.openCursor(keyRange);
+            var testRuns = [];
+
+            cursorRequest.onsuccess = function (e) {
+                var result = e.target.result;
+
+                if (!result) {
+                    callback(testRuns);
+                    return;
+                }
+
+                var request = result.value;
+                testRuns.push(request);
+
+                //This wil call onsuccess again and again until no more request is left
+                result['continue']();
+            };
+
+            cursorRequest.onerror = pm.indexedDB.onerror;
+        },
+
+        updateTestRun:function (testRun, callback) {
+            var db = pm.indexedDB.db;
+            var trans = db.transaction([pm.indexedDB.TABLE_TEST_RUNS], "readwrite");
+            var store = trans.objectStore(pm.indexedDB.TABLE_TEST_RUNS);
+
+            var boundKeyRange = IDBKeyRange.only(testRun.id);
+            var request = store.put(testRun);
+
+            request.onsuccess = function (e) {
+                callback(testRun);
+            };
+
+            request.onerror = function (e) {
+                console.log(e.value);
+            };
+        },
+
+        getTestRun: function(id, callback) {
+            var db = pm.indexedDB.db;
+            var trans = db.transaction([pm.indexedDB.TABLE_TEST_RUNS], "readwrite");
+            var store = trans.objectStore(pm.indexedDB.TABLE_TEST_RUNS);
 
             //Get everything in the store
             var cursorRequest = store.get(id);

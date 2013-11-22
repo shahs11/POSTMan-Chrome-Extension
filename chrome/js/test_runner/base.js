@@ -83,6 +83,11 @@ window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileS
 pm.init = function () {
     Handlebars.partials = Handlebars.templates;
 
+    function initializeTester() {
+        var tester = new Tester();
+        pm.tester = tester;
+    }
+
     function initializePostmanAPI() {
         pm.api = new PostmanAPI();
     }
@@ -114,8 +119,8 @@ pm.init = function () {
             "variableProcessor": variableProcessor
         });
 
-        // var appView = new App({model: appState});
-        // pm.app = appView;
+        var appView = new TestRunApp({model: appState});
+        pm.app = appView;
     }
 
     function initializeHeaderPresets() {
@@ -137,11 +142,31 @@ pm.init = function () {
         pm.methods = requestMethods;
     }
 
-    function initializeUser() {
-        // var header = new Header();
+    function initializeSidebar() {
+    	var state = new TestRunnerSidebarState();
+    	var sidebar = new TestRunnerSidebar({model: state});
+	}
 
+    function initializeUser() {
         var user = new User();
         pm.user = user;
+    }
+
+    function initializeTestRunner() {
+    	var testRuns = new TestRuns();
+    	var testRunnerSidebarState = new TestRunnerSidebarState({testRuns: testRuns});
+    	var testRunnerSidebar = new TestRunnerSidebar({model: testRunnerSidebarState});
+
+    	var o = {
+    		"collections": pm.collections,
+    		"envManager": pm.envManager,
+    		"testRuns": testRuns
+    	};
+
+        var testRunStarterState = new TestRunStarterState(o);
+    	var testRunStarter = new TestRunStarter({model: testRunStarterState});
+
+    	pm.testRuns = testRuns;
     }
 
     pm.mediator = new Mediator();
@@ -154,17 +179,18 @@ pm.init = function () {
         pm.settings.init(function() {
             pm.filesystem.init();
             pm.indexedDB.open(function() {
+            	initializeTester();
                 initializePostmanAPI();
                 initializeRequester();
                 initializeHistory();
                 initializeCollections();
-
                 initializeEnvironments();
                 initializeHeaderPresets();
-
-                // initializeSidebar();
-
+                initializeSidebar();
                 initializeUser();
+
+                // Test runner specific initializations
+                initializeTestRunner();
 
                 pm.hasPostmanInitialized = true;
             });

@@ -33,12 +33,13 @@ var Environments = Backbone.Collection.extend({
         this.startListeningForFileSystemSyncEvents();
 
         pm.indexedDB.environments.getAllEnvironments(function (environments) {
-
             environments.sort(sortAlphabetical);
             collection.add(environments, {merge: true});
 
             collection.isLoaded = true;
             collection.trigger("startSync");
+            collection.trigger("loadedEnvironments");
+            pm.mediator.trigger("loadedEnvironments");
         })
     },
 
