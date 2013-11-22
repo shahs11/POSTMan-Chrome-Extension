@@ -197,7 +197,6 @@ var OAuth1Processor = Backbone.Model.extend({
         var dataMode = body.get("dataMode");
         var method = request.get("method");
 
-        // TODO Need to test if this works
         var bodyParams = body.get("dataAsObjects");
 
         params = params.concat(urlParams);
@@ -256,6 +255,8 @@ var OAuth1Processor = Backbone.Model.extend({
             params = params.concat(oAuthParams);
 
             if (!request.isMethodWithBody(method)) {
+                console.log("Setting URL params", params);
+
                 request.setUrlParamString(params);
                 request.trigger("customURLParamUpdate");
             } else {

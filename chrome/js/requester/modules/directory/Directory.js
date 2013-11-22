@@ -20,7 +20,8 @@ var Directory = Backbone.Collection.extend({
     model: DirectoryCollection,
 
     startId: 0,
-    fetchCount: 42,
+    endId: 0,
+    fetchCount: 44,
     lastCount: 0,
     totalCount: 0,
     order: "descending",
@@ -29,7 +30,7 @@ var Directory = Backbone.Collection.extend({
 
     reload: function() {
         this.startId = 0;
-        this.fetchCount = 42;
+        this.fetchCount = 44;
         this.lastCount = 0;
         this.totalCount = 0;
         this.getCollections(this.startId, this.fetchCount, "descending");
@@ -55,7 +56,7 @@ var Directory = Backbone.Collection.extend({
     },
 
     loadNext: function() {
-        this.getCollections(this.startId, this.fetchCount, "descending");
+        this.getCollections(this.endId, this.fetchCount, "descending");
     },
 
     loadPrevious: function() {
@@ -65,17 +66,17 @@ var Directory = Backbone.Collection.extend({
     getCollections: function(startId, count, order) {
     	var collection = this;
 
+        console.log("Getting collections", startId, "Count", count, "Order", order);
+
     	pm.api.getDirectoryCollections(startId, count, order, function (collections) {
             var c;
             var i;
             var updated_at_formatted;
 
             if (order === "descending") {
-                collection.startId = parseInt(collections[collections.length - 1].id, 10);
                 collection.totalCount += collections.length;
             }
             else {
-                collection.startId = parseInt(collections[0].id, 10);
                 collection.totalCount -= collection.lastCount;
             }
 
@@ -93,6 +94,9 @@ var Directory = Backbone.Collection.extend({
 
                 collection.reset([]);
                 collection.add(collections, {merge: true});
+
+                collection.startId = parseInt(collections[0].id, 10);
+                collection.endId = parseInt(collections[collections.length - 1].id, 10);
 	    	}
         });
     },

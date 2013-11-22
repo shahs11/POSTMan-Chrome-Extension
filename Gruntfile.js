@@ -34,7 +34,10 @@ module.exports = function(grunt) {
       },
 
       test_runner_js: {
-        src: ['chrome/js/test_runner/**/*.js'],
+        src: [
+          'chrome/js/requester/modules/**/*.js',
+          'chrome/js/test_runner/**/*.js'
+        ],
         dest: 'chrome/js/test_runner.js'
       },
       test_runner_html: {
