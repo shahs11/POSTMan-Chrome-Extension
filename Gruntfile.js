@@ -35,8 +35,9 @@ module.exports = function(grunt) {
 
       test_runner_js: {
         src: [
+          'chrome/js/requester/Features.js',
+          'chrome/js/test_runner/**/*.js',
           'chrome/js/requester/modules/**/*.js',
-          'chrome/js/test_runner/**/*.js'
         ],
         dest: 'chrome/js/test_runner.js'
       },
@@ -76,7 +77,7 @@ module.exports = function(grunt) {
 
       requester_js: {
         files: ['chrome/js/requester/**/*.js'],
-        tasks: ['concat:requester_js']
+        tasks: ['concat:requester_js','concat:test_runner_js']
       },
 
       requester_html: {
