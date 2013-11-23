@@ -122,6 +122,9 @@ var ResponseViewer = Backbone.View.extend({
                 else if (activeSection === "headers") {
                     this.showHeaders();
                 }
+                else if (activeSection === "tests") {
+                    this.showTests();
+                }
                 else {
                     this.showBody();
                 }

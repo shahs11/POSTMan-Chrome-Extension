@@ -28,14 +28,14 @@ var TestRunStarter = Backbone.View.extend({
 		    }
 		}
 
-		$('#select-collection').html("<option>Select</option>");
+		$('#select-collection').html("<option value='0'>Select</option>");
 		$('#select-collection').append(Handlebars.templates.collection_selector_list({items: items}));
 	},
 
 	renderEnvironments: function() {
 		var model = this.model;
 		var items = _.clone(model.get("envManager").get("environments").toJSON());
-		$('#select-environment').html("<option>Select</option>");
+		$('#select-environment').html("<option value='0'>No environment</option>");
 		$('#select-environment').append(Handlebars.templates.environment_list({items: items}));
 	},
 
@@ -43,12 +43,12 @@ var TestRunStarter = Backbone.View.extend({
 		var target_id = $("#select-collection").val();
 		var target_type = $("#select-collection option[value='" + target_id + "']").attr("data-type");
 
-		var collection_id;
-		var folder_id;
+		var collection_id = 0;
+		var folder_id = 0;
 
 		if (target_type === "folder") {
 			folder_id = target_id;
-			collection_id = $("#select-collection option[value='" + target_id + "']").attr("data-folder-id");
+			collection_id = $("#select-collection option[value='" + target_id + "']").attr("data-collection-id");
 		}
 		else {
 			collection_id = target_id;
@@ -57,6 +57,14 @@ var TestRunStarter = Backbone.View.extend({
 		var environment_id = $("#select-environment").val();
 		var count = parseInt($("#test-run-count").val(), 10);
 
-		console.log(target_id, collection_id, target_type, environment_id, count);
+		var params = {
+			"collection_id": collection_id,
+			"folder_id": folder_id,
+			"target_type": target_type,
+			"environment_id": environment_id,
+			"count": count
+		};
+
+		pm.mediator.trigger("startTestRun", params);
 	}
 });

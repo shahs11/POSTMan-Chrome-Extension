@@ -25,7 +25,8 @@ var Request = Backbone.Model.extend({
             previewHtml:"",
             curlHtml:"",
             tests:null,
-            testResults:null
+            testResults:null,
+            areHelpersEnabled:true
         };
     },
 
@@ -571,14 +572,21 @@ var Request = Backbone.Model.extend({
         }
     },
 
-    prepareForSending: function() {
-        console.log("Preparing request for sending", pm.helpers.getActiveHelperType(), pm.helpers.getHelper("oAuth1").get("auto"));
+    disableHelpers: function() {
+        this.set("areHelpersEnabled", false);
+    },
 
-        if (pm.helpers.getActiveHelperType() === "oAuth1" && pm.helpers.getHelper("oAuth1").get("auto")) {
-            console.log("Generating oAuth1 helper");
-            pm.helpers.getHelper("oAuth1").generateHelper();
-            pm.helpers.getHelper("oAuth1").process();
+    prepareForSending: function() {
+        var areHelpersEnabled = this.get("areHelpersEnabled");
+
+        if (areHelpersEnabled) {
+            if (pm.helpers.getActiveHelperType() === "oAuth1" && pm.helpers.getHelper("oAuth1").get("auto")) {
+                console.log("Generating oAuth1 helper");
+                pm.helpers.getHelper("oAuth1").generateHelper();
+                pm.helpers.getHelper("oAuth1").process();
+            }
         }
+
 
         this.set("startTime", new Date().getTime());
     },
@@ -828,7 +836,8 @@ var Request = Backbone.Model.extend({
             this.set("name", request.name);
             this.set("description", request.description);
             this.set("tests", request.tests);
-            this.set("testResults", request.testResults);
+            // TODO Why is this being set?
+            // this.set("testResults", request.testResults);
         }
     }
 });

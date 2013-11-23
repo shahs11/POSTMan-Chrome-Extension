@@ -6,17 +6,26 @@ var Tester = Backbone.Model.extend({
 	},
 
 	runTest: function(request, callback) {
+		console.log("TEST RUNNER", "Trying to run a test", request);
+		console.log(request.get("tests"));
+
 		var testCode = request.get("tests");
+
 		// Wrapper function
 		var baseCode = "(function(){";
 		baseCode += testCode;
 		baseCode += "})()";
 
+		var response = request.get("response");
+
 		var environment = {
-			"responseBody": request.get("response").get("text"),
-			"responseHeaders": request.get("response").get("headers"),
-			"responseTime": request.get("response").get("time")
+			"responseBody": response.get("text"),
+			"responseHeaders": response.get("headers"),
+			"responseTime": response.get("time"),
+			"responseCode": response.get("responseCode")
 		};
+
+		console.log("Environment is", environment);
 
 		this.postCode(baseCode, environment);
 

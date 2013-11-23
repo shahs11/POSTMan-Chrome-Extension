@@ -61,6 +61,16 @@ var VariableProcessor = Backbone.Model.extend({
         this.set("selectedEnv", this.get("environments").get(pm.settings.getSetting("selectedEnvironmentId")));
     },
 
+    setEnvironment: function(environment) {
+        this.set("selectedEnvironmentId", environment.get("id"));
+        this.set("selectedEnv", environment);
+    },
+
+    setGlobals: function(globals) {
+        var globals = this.get("globals");
+        globals.set("globals", globals);
+    },
+
     containsVariable:function (string, values) {
         var variableDelimiter = pm.settings.getSetting("variableDelimiter");
         var startDelimiter = variableDelimiter.substring(0, 2);

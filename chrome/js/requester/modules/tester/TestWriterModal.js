@@ -55,6 +55,9 @@ var TestWriterModal = Backbone.View.extend({
                 view.editor.setValue(request.get("tests"));
                 view.editor.refresh();
             }
+            else {
+                view.editor.setValue("");
+            }
 
             CodeMirror.commands["goDocStart"](view.editor);
         }, 750);

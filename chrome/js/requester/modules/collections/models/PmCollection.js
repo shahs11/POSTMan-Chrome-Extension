@@ -95,6 +95,29 @@ var PmCollection = Backbone.Model.extend({
     	}
     },
 
+    getFolderById: function(folderId) {
+        var folders = _.clone(this.get("folders"));
+        var location = arrayObjectIndexOf(folders, folderId, "id");
+        return folders[location];
+    },
+
+    getRequestsInFolder: function(folder) {
+        var folderOrder = folder.order;
+        var requests = _.clone(this.get("requests"));
+        var count = folderOrder.length;
+        var index;
+        var folderRequests = [];
+
+        for(var i = 0; i < count; i++) {
+            index = arrayObjectIndexOf(requests, folderOrder[i], "id");
+            if (index >= 0) {
+                folderRequests.push(requests[index]);
+            }
+        }
+
+        return folderRequests;
+    },
+
     addFolder: function(folder) {
         var folders = _.clone(this.get("folders"));
         folders.push(folder);

@@ -47,6 +47,25 @@ var TestRunApp = Backbone.View.extend({
 	    $('#main').width(newMainWidth + "px");
 	}
 });
+var TestRunAppHeader = Backbone.View.extend({
+	initialize: function() {
+		$("#logo").on("click", function() {
+			pm.mediator.trigger("openModule", "requester");
+		});
+
+		pm.mediator.on("openModule", this.onOpenModule, this);
+	},
+
+	onOpenModule: function() {
+	  chrome.app.window.create('requester.html', {
+	    "bounds": {
+	      width: 1200,
+	      height: 800
+	    }
+	  }, function(win) {
+	  });
+	}
+});
 /*
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
@@ -170,6 +189,8 @@ pm.init = function () {
 
         var appView = new TestRunApp({model: appState});
         pm.app = appView;
+
+        var testRunAppHeader = new TestRunAppHeader({model: {}});
     }
 
     function initializeHeaderPresets() {
@@ -295,14 +316,14 @@ var TestRunStarter = Backbone.View.extend({
 		    }
 		}
 
-		$('#select-collection').html("<option>Select</option>");
+		$('#select-collection').html("<option value='0'>Select</option>");
 		$('#select-collection').append(Handlebars.templates.collection_selector_list({items: items}));
 	},
 
 	renderEnvironments: function() {
 		var model = this.model;
 		var items = _.clone(model.get("envManager").get("environments").toJSON());
-		$('#select-environment').html("<option>Select</option>");
+		$('#select-environment').html("<option value='0'>No environment</option>");
 		$('#select-environment').append(Handlebars.templates.environment_list({items: items}));
 	},
 
@@ -310,12 +331,12 @@ var TestRunStarter = Backbone.View.extend({
 		var target_id = $("#select-collection").val();
 		var target_type = $("#select-collection option[value='" + target_id + "']").attr("data-type");
 
-		var collection_id;
-		var folder_id;
+		var collection_id = 0;
+		var folder_id = 0;
 
 		if (target_type === "folder") {
 			folder_id = target_id;
-			collection_id = $("#select-collection option[value='" + target_id + "']").attr("data-folder-id");
+			collection_id = $("#select-collection option[value='" + target_id + "']").attr("data-collection-id");
 		}
 		else {
 			collection_id = target_id;
@@ -324,7 +345,15 @@ var TestRunStarter = Backbone.View.extend({
 		var environment_id = $("#select-environment").val();
 		var count = parseInt($("#test-run-count").val(), 10);
 
-		console.log(target_id, collection_id, target_type, environment_id, count);
+		var params = {
+			"collection_id": collection_id,
+			"folder_id": folder_id,
+			"target_type": target_type,
+			"environment_id": environment_id,
+			"count": count
+		};
+
+		pm.mediator.trigger("startTestRun", params);
 	}
 });
 var TestRunStarterState = Backbone.Model.extend({
@@ -358,25 +387,134 @@ var TestRun = Backbone.Model.extend({
 			"id": "",
 			"name": "Default",
 			"timestamp": 0,
+			"collection_id": "",
+			"folder_id": "",
+			"target_type": "",
+			"environment_id": "",
+			"count": 0,
 			"collection": null,
 			"folder": null,
 			"environment": null,
 			"globals": null,
-			"results": ""
+			"results": null
 		}
 	},
 
 	initialize: function() {
+		console.log("Initialized test run", this.toJSON());
+	},
+
+	start: function() {
+		var collection = this.get("collection");
+		var folder = this.get("folder");
+		var target_type = this.get("target_type");
+		var environment = this.get("environment");
+		var globals = this.get("globals");
+
+		// Set up environment and globals
+		if (environment) {
+			pm.envManager.setEnvironment(environment);
+		}
+
+		pm.envManager.setGlobals(globals);
+
+		// Filter executable requests
+		var allRequests;
+
+		// TODO Order requests according to the order array
+		if (target_type === "folder") {
+			allRequests = collection.getRequestsInFolder(folder);
+		}
+		else {
+			allRequests = _.clone(collection.get("requests"));
+		}
+
+		this.runRequests(allRequests, this.get("count"));
+	},
+
+	runRequests: function(requests, runCount) {
+		var currentRunCount = 0;
+
+		this.set("requests", requests);
+		var requestCount = requests.length;
+		var currentRequestIndex = 0;
+		var request;
+		var response;
+
+		var result;
+
+		var results = [];
+
+		function onSentRequest(r) {
+			console.log("TEST RUNNER", "Sent request", r);
+		}
+
+		function onLoadResponse(r) {
+			console.log("TEST RUNNER", "Loaded response", r);
+
+			if ("tests" in request) {
+				pm.mediator.trigger("runRequestTest", request);
+			}
+			else {
+				finishRequestRun();
+			}
+
+		}
+
+		function onFinishTests(data) {
+			console.log("TEST RUNNER", "Received tests", data);
+		}
+
+		function finishRequestRun() {
+			if (currentRequestIndex < requestCount - 1) {
+				currentRequestIndex += 1;
+				sendRequest(currentRequestIndex);
+			}
+			else {
+				currentRunCount += 1;
+
+				if (currentRunCount == runCount) {
+					console.log("TEST RUNNER", "Finish running", currentRunCount);
+				}
+				else {
+					console.log("TEST RUNNER", "Another run", currentRunCount);
+					// Re-initiate run
+					currentRequestIndex = 0;
+					sendRequest(0);
+				}
+			}
+		}
+
+		function sendRequest(index) {
+			request = new Request();
+			request.loadRequest(requests[index], true, false);
+			request.disableHelpers(); // TODO Should get rid of this call later
+
+			// Attach listeners for request and response
+			request.on("sentRequest", onSentRequest);
+			response = request.get("response");
+
+			response.on("loadResponse", onLoadResponse);
+
+			request.send();
+		}
+
+		// Initiate request
+		if (requestCount > 0) {
+			sendRequest(0);
+		}
 
 	}
 });
 
+// TODO Reload collection data when something is updated in the requester window
 var TestRuns = Backbone.Collection.extend({
 	model: TestRun,
 
 	initialize: function() {
-		console.log("Initialized TestRuns");
 		this.loadAllTestRuns();
+
+		pm.mediator.on("startTestRun", this.onStartTestRun, this);
 	},
 
 	loadAllTestRuns: function() {
@@ -384,8 +522,55 @@ var TestRuns = Backbone.Collection.extend({
 
 		pm.indexedDB.testRuns.getAllTestRuns(function(testRuns) {
 			collection.add(testRuns, { merge: true });
-			console.log("Loaded all test runs", collection.toJSON());;
 		});
+	},
+
+	onStartTestRun: function(params) {
+		var collection_id = params["collection_id"];
+		var folder_id = params["folder_id"];
+		var target_type = params["target_type"];
+		var environment_id = params["environment_id"];
+		var count = params["count"];
+
+		console.log("Initating test run", params);
+
+		var collection = pm.collections.get(collection_id);
+		var folder;
+
+		if (folder_id !== "0") {
+			folder = collection.getFolderById(folder_id);
+		}
+
+		var environment;
+
+		if (environment_id !== "0") {
+			environment = pm.envManager.get("environments").get(environment_id);
+		}
+
+		var globals = pm.envManager.get("globals").get("globals");
+
+		var testRunParams = {
+			"id": guid(),
+			"name": "Default",
+			"timestamp": new Date().getTime(),
+			"collection_id": collection_id,
+			"folder_id": folder_id,
+			"target_type": target_type,
+			"environment_id": environment_id,
+			"count": count,
+			"collection": collection,
+			"folder": folder,
+			"environment": environment,
+			"globals": globals
+		};
+
+		console.log("Params are", testRunParams);
+		var testRun = new TestRun(testRunParams);
+
+		// TODO Add to collection and update sidebar
+		testRun.start();
+
+		pm.mediator.trigger("startedTestRun");
 	}
 });
 var AppState = Backbone.Model.extend({
@@ -665,6 +850,29 @@ var PmCollection = Backbone.Model.extend({
     	if (location !== -1) {
     		requests.splice(location, 1, newRequest);
     	}
+    },
+
+    getFolderById: function(folderId) {
+        var folders = _.clone(this.get("folders"));
+        var location = arrayObjectIndexOf(folders, folderId, "id");
+        return folders[location];
+    },
+
+    getRequestsInFolder: function(folder) {
+        var folderOrder = folder.order;
+        var requests = _.clone(this.get("requests"));
+        var count = folderOrder.length;
+        var index;
+        var folderRequests = [];
+
+        for(var i = 0; i < count; i++) {
+            index = arrayObjectIndexOf(requests, folderOrder[i], "id");
+            if (index >= 0) {
+                folderRequests.push(requests[index]);
+            }
+        }
+
+        return folderRequests;
     },
 
     addFolder: function(folder) {
@@ -4759,6 +4967,16 @@ var VariableProcessor = Backbone.Model.extend({
         this.set("selectedEnv", this.get("environments").get(pm.settings.getSetting("selectedEnvironmentId")));
     },
 
+    setEnvironment: function(environment) {
+        this.set("selectedEnvironmentId", environment.get("id"));
+        this.set("selectedEnv", environment);
+    },
+
+    setGlobals: function(globals) {
+        var globals = this.get("globals");
+        globals.set("globals", globals);
+    },
+
     containsVariable:function (string, values) {
         var variableDelimiter = pm.settings.getSetting("variableDelimiter");
         var startDelimiter = variableDelimiter.substring(0, 2);
@@ -7291,7 +7509,8 @@ var Request = Backbone.Model.extend({
             previewHtml:"",
             curlHtml:"",
             tests:null,
-            testResults:null
+            testResults:null,
+            areHelpersEnabled:true
         };
     },
 
@@ -7837,14 +8056,21 @@ var Request = Backbone.Model.extend({
         }
     },
 
-    prepareForSending: function() {
-        console.log("Preparing request for sending", pm.helpers.getActiveHelperType(), pm.helpers.getHelper("oAuth1").get("auto"));
+    disableHelpers: function() {
+        this.set("areHelpersEnabled", false);
+    },
 
-        if (pm.helpers.getActiveHelperType() === "oAuth1" && pm.helpers.getHelper("oAuth1").get("auto")) {
-            console.log("Generating oAuth1 helper");
-            pm.helpers.getHelper("oAuth1").generateHelper();
-            pm.helpers.getHelper("oAuth1").process();
+    prepareForSending: function() {
+        var areHelpersEnabled = this.get("areHelpersEnabled");
+
+        if (areHelpersEnabled) {
+            if (pm.helpers.getActiveHelperType() === "oAuth1" && pm.helpers.getHelper("oAuth1").get("auto")) {
+                console.log("Generating oAuth1 helper");
+                pm.helpers.getHelper("oAuth1").generateHelper();
+                pm.helpers.getHelper("oAuth1").process();
+            }
         }
+
 
         this.set("startTime", new Date().getTime());
     },
@@ -8094,7 +8320,8 @@ var Request = Backbone.Model.extend({
             this.set("name", request.name);
             this.set("description", request.description);
             this.set("tests", request.tests);
-            this.set("testResults", request.testResults);
+            // TODO Why is this being set?
+            // this.set("testResults", request.testResults);
         }
     }
 });
@@ -11156,6 +11383,9 @@ var ResponseViewer = Backbone.View.extend({
                 else if (activeSection === "headers") {
                     this.showHeaders();
                 }
+                else if (activeSection === "tests") {
+                    this.showTests();
+                }
                 else {
                     this.showBody();
                 }
@@ -13958,6 +14188,9 @@ var TestWriterModal = Backbone.View.extend({
                 view.editor.setValue(request.get("tests"));
                 view.editor.refresh();
             }
+            else {
+                view.editor.setValue("");
+            }
 
             CodeMirror.commands["goDocStart"](view.editor);
         }, 750);
@@ -13973,17 +14206,26 @@ var Tester = Backbone.Model.extend({
 	},
 
 	runTest: function(request, callback) {
+		console.log("TEST RUNNER", "Trying to run a test", request);
+		console.log(request.get("tests"));
+
 		var testCode = request.get("tests");
+
 		// Wrapper function
 		var baseCode = "(function(){";
 		baseCode += testCode;
 		baseCode += "})()";
 
+		var response = request.get("response");
+
 		var environment = {
-			"responseBody": request.get("response").get("text"),
-			"responseHeaders": request.get("response").get("headers"),
-			"responseTime": request.get("response").get("time")
+			"responseBody": response.get("text"),
+			"responseHeaders": response.get("headers"),
+			"responseTime": response.get("time"),
+			"responseCode": response.get("responseCode")
 		};
+
+		console.log("Environment is", environment);
 
 		this.postCode(baseCode, environment);
 

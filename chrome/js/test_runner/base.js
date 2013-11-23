@@ -121,6 +121,8 @@ pm.init = function () {
 
         var appView = new TestRunApp({model: appState});
         pm.app = appView;
+
+        var testRunAppHeader = new TestRunAppHeader({model: {}});
     }
 
     function initializeHeaderPresets() {
