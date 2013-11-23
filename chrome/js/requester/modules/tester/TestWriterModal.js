@@ -40,7 +40,6 @@ var TestWriterModal = Backbone.View.extend({
     },
 
     render: function(request) {
-        console.log(request);
         $('#form-test-writer .collection-request-id').val(request.get("collectionRequestId"));
         $('#modal-test-writer').modal('show');
 

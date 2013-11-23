@@ -14,6 +14,8 @@ var Evaluator = Backbone.Model.extend({
 			responseTime = environment.responseTime;
 			responseCode = environment.responseCode;
 
+			runIndex = environment.runIndex;
+
 			if (command === "runcode") {
 			    var result = eval(code);
 			    event.source.postMessage({'result': result}, event.origin);

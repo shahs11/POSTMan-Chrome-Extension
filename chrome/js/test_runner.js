@@ -62,7 +62,6 @@ var TestRunAppHeader = Backbone.View.extend({
 	      width: 1200,
 	      height: 800
 	    }
-	  }, function(win) {
 	  });
 	}
 });
@@ -212,11 +211,6 @@ pm.init = function () {
         pm.methods = requestMethods;
     }
 
-    function initializeSidebar() {
-    	var state = new TestRunnerSidebarState();
-    	var sidebar = new TestRunnerSidebar({model: state});
-	}
-
     function initializeUser() {
         var user = new User();
         pm.user = user;
@@ -224,14 +218,15 @@ pm.init = function () {
 
     function initializeTestRunner() {
     	var testRuns = new TestRuns();
-    	var testRunnerSidebarState = new TestRunnerSidebarState({testRuns: testRuns});
-    	var testRunnerSidebar = new TestRunnerSidebar({model: testRunnerSidebarState});
 
     	var o = {
     		"collections": pm.collections,
     		"envManager": pm.envManager,
     		"testRuns": testRuns
     	};
+
+        var testRunnerSidebarState = new TestRunnerSidebarState(o);
+        var testRunnerSidebar = new TestRunnerSidebar({model: testRunnerSidebarState});
 
         var testRunStarterState = new TestRunStarterState(o);
     	var testRunStarter = new TestRunStarter({model: testRunStarterState});
@@ -256,7 +251,6 @@ pm.init = function () {
                 initializeCollections();
                 initializeEnvironments();
                 initializeHeaderPresets();
-                initializeSidebar();
                 initializeUser();
 
                 // Test runner specific initializations
@@ -271,9 +265,49 @@ pm.init = function () {
 $(document).ready(function () {
     pm.init();
 });
+var RunsSidebar = Backbone.View.extend({
+	initialize: function() {
+		var model = this.model;
+		var view = this;
+
+		$('#test-run-items').on("mouseenter", ".sidebar-test-run", function () {
+		    var actionsEl = jQuery('.test-run-actions', this);
+		    actionsEl.css('display', 'block');
+		});
+
+		$('#test-run-items').on("mouseleave", ".sidebar-test-run", function () {
+		    var actionsEl = jQuery('.test-run-actions', this);
+		    actionsEl.css('display', 'none');
+		});
+
+		pm.mediator.on("loadedAllTestRuns", this.render, this);
+	},
+
+	showEmptyMessage:function () {
+	    $('#test-run-items').append(Handlebars.templates.message_no_test_runs());
+	},
+
+	render: function() {
+		var model = this.model;
+		var testRuns = model.toJSON();
+
+		$('#test-run-items').html("");
+
+		if (testRuns.length > 0) {
+			$('#test-run-items').append(Handlebars.templates.sidebar_test_run_list({items: testRuns}));
+		}
+		else {
+			this.showEmptyMessage();
+		}
+
+	}
+});
 var TestRunnerSidebarState = Backbone.Model.extend({
 	defaults: function() {
 		return {
+			"collections": null,
+			"envManager": null,
+			"testRuns": null
 		}
 	},
 
@@ -283,7 +317,8 @@ var TestRunnerSidebarState = Backbone.Model.extend({
 });
 var TestRunnerSidebar = Backbone.View.extend({
 	initialize: function() {
-
+		console.log(this.model);
+		var runsSidebar = new RunsSidebar({model: this.model.get("testRuns")});
 	}
 });
 var TestRunStarter = Backbone.View.extend({
@@ -404,6 +439,30 @@ var TestRun = Backbone.Model.extend({
 		console.log("Initialized test run", this.toJSON());
 	},
 
+	getAsJSON: function() {
+		var obj = {
+			"id": this.get("id"),
+			"name": this.get("name"),
+			"timestamp": this.get("timestamp"),
+			"collection_id": this.get("collection_id"),
+			"folder_id": this.get("folder_id"),
+			"target_type": this.get("target_type"),
+			"environment_id": this.get("environment_id"),
+			"count": this.get("count"),
+			"collection": this.get("collection").getAsJSON(),
+			"folder": this.get("folder"),
+			"globals": this.get("globals"),
+			"results": this.get("results"),
+			"environment": null
+		};
+
+		if (this.get("environment")) {
+			obj["environment"] = this.get("environment").toJSON();
+		}
+
+		return obj;
+	},
+
 	start: function() {
 		var collection = this.get("collection");
 		var folder = this.get("folder");
@@ -429,7 +488,26 @@ var TestRun = Backbone.Model.extend({
 			allRequests = _.clone(collection.get("requests"));
 		}
 
+		this.addToDataStore(this.getAsJSON());
 		this.runRequests(allRequests, this.get("count"));
+	},
+
+	addToDataStore: function(testRun) {
+		pm.indexedDB.testRuns.addTestRun(testRun, function(data) {
+			console.log("Added test run", data);
+		});
+	},
+
+	updateInDataStore: function(testRun) {
+		pm.indexedDB.testRuns.updateTestRun(testRun, function(data) {
+			console.log("Update test run", data);
+		});
+	},
+
+	deleteFromDataStore: function(id) {
+		pm.indexedDB.testRuns.deleteTestRun(id, function() {
+			console.log("Deleted test run");
+		});
 	},
 
 	runRequests: function(requests, runCount) {
@@ -445,27 +523,60 @@ var TestRun = Backbone.Model.extend({
 
 		var results = [];
 
+		function addResult(result) {
+			var index = arrayObjectIndexOf(results, result.id, "id");
+			var r;
+
+			if (index >= 0) {
+				r = results[index];
+				// TODO Calculate average time
+				r["times"].push(result.responseTime);
+				r["allTests"].push(result.tests);
+			}
+			else {
+				results.push(result);
+			}
+		}
+
 		function onSentRequest(r) {
 			console.log("TEST RUNNER", "Sent request", r);
+			result = {
+				"id": request.id,
+				"name": request.name,
+				"url": request.url,
+				"times": [],
+				"allTests": []
+			}
 		}
 
 		function onLoadResponse(r) {
-			console.log("TEST RUNNER", "Loaded response", r);
+			result["responseCode"] = response.get("responseCode");
+			result["time"] = response.get("time");
 
-			if ("tests" in request) {
-				pm.mediator.trigger("runRequestTest", request);
+			console.log("TEST RUNNER", "Loaded response", r);
+			var tests = request.get("tests");
+
+			if (tests) {
+				console.log("TEST RUNNER", "Running tests");
+				pm.mediator.trigger("runRequestTest", request, currentRunCount, onFinishTests);
 			}
 			else {
+				console.log("TEST RUNNER", "No tests. Finishing");
 				finishRequestRun();
 			}
 
 		}
 
 		function onFinishTests(data) {
+			result["tests"] = data;
+
 			console.log("TEST RUNNER", "Received tests", data);
+			finishRequestRun();
 		}
 
 		function finishRequestRun() {
+			results.push(result);
+
 			if (currentRequestIndex < requestCount - 1) {
 				currentRequestIndex += 1;
 				sendRequest(currentRequestIndex);
@@ -474,7 +585,7 @@ var TestRun = Backbone.Model.extend({
 				currentRunCount += 1;
 
 				if (currentRunCount == runCount) {
-					console.log("TEST RUNNER", "Finish running", currentRunCount);
+					console.log("TEST RUNNER", "Finished all tests", results);
 				}
 				else {
 					console.log("TEST RUNNER", "Another run", currentRunCount);
@@ -522,6 +633,7 @@ var TestRuns = Backbone.Collection.extend({
 
 		pm.indexedDB.testRuns.getAllTestRuns(function(testRuns) {
 			collection.add(testRuns, { merge: true });
+			pm.mediator.trigger("loadedAllTestRuns");
 		});
 	},
 
@@ -7578,7 +7690,7 @@ var Request = Backbone.Model.extend({
 
         if (tests !== null) {
             console.log("Inside Requests, should run test now");
-            pm.mediator.trigger("runRequestTest", this, function(data) {
+            pm.mediator.trigger("runRequestTest", this, 1, function(data) {
                 request.set("testResults", data);
             });
         }
@@ -14173,7 +14285,6 @@ var TestWriterModal = Backbone.View.extend({
     },
 
     render: function(request) {
-        console.log(request);
         $('#form-test-writer .collection-request-id').val(request.get("collectionRequestId"));
         $('#modal-test-writer').modal('show');
 
@@ -14205,7 +14316,7 @@ var Tester = Backbone.Model.extend({
 		};
 	},
 
-	runTest: function(request, callback) {
+	runTest: function(request, runIndex, callback) {
 		console.log("TEST RUNNER", "Trying to run a test", request);
 		console.log(request.get("tests"));
 
@@ -14222,7 +14333,8 @@ var Tester = Backbone.Model.extend({
 			"responseBody": response.get("text"),
 			"responseHeaders": response.get("headers"),
 			"responseTime": response.get("time"),
-			"responseCode": response.get("responseCode")
+			"responseCode": response.get("responseCode"),
+			"runIndex": runIndex
 		};
 
 		console.log("Environment is", environment);

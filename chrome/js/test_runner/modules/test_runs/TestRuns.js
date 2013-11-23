@@ -21,6 +21,30 @@ var TestRun = Backbone.Model.extend({
 		console.log("Initialized test run", this.toJSON());
 	},
 
+	getAsJSON: function() {
+		var obj = {
+			"id": this.get("id"),
+			"name": this.get("name"),
+			"timestamp": this.get("timestamp"),
+			"collection_id": this.get("collection_id"),
+			"folder_id": this.get("folder_id"),
+			"target_type": this.get("target_type"),
+			"environment_id": this.get("environment_id"),
+			"count": this.get("count"),
+			"collection": this.get("collection").getAsJSON(),
+			"folder": this.get("folder"),
+			"globals": this.get("globals"),
+			"results": this.get("results"),
+			"environment": null
+		};
+
+		if (this.get("environment")) {
+			obj["environment"] = this.get("environment").toJSON();
+		}
+
+		return obj;
+	},
+
 	start: function() {
 		var collection = this.get("collection");
 		var folder = this.get("folder");
@@ -46,7 +70,26 @@ var TestRun = Backbone.Model.extend({
 			allRequests = _.clone(collection.get("requests"));
 		}
 
+		this.addToDataStore(this.getAsJSON());
 		this.runRequests(allRequests, this.get("count"));
+	},
+
+	addToDataStore: function(testRun) {
+		pm.indexedDB.testRuns.addTestRun(testRun, function(data) {
+			console.log("Added test run", data);
+		});
+	},
+
+	updateInDataStore: function(testRun) {
+		pm.indexedDB.testRuns.updateTestRun(testRun, function(data) {
+			console.log("Update test run", data);
+		});
+	},
+
+	deleteFromDataStore: function(id) {
+		pm.indexedDB.testRuns.deleteTestRun(id, function() {
+			console.log("Deleted test run");
+		});
 	},
 
 	runRequests: function(requests, runCount) {
@@ -62,27 +105,60 @@ var TestRun = Backbone.Model.extend({
 
 		var results = [];
 
+		function addResult(result) {
+			var index = arrayObjectIndexOf(results, result.id, "id");
+			var r;
+
+			if (index >= 0) {
+				r = results[index];
+				// TODO Calculate average time
+				r["times"].push(result.responseTime);
+				r["allTests"].push(result.tests);
+			}
+			else {
+				results.push(result);
+			}
+		}
+
 		function onSentRequest(r) {
 			console.log("TEST RUNNER", "Sent request", r);
+			result = {
+				"id": request.id,
+				"name": request.name,
+				"url": request.url,
+				"times": [],
+				"allTests": []
+			}
 		}
 
 		function onLoadResponse(r) {
-			console.log("TEST RUNNER", "Loaded response", r);
+			result["responseCode"] = response.get("responseCode");
+			result["time"] = response.get("time");
 
-			if ("tests" in request) {
-				pm.mediator.trigger("runRequestTest", request);
+			console.log("TEST RUNNER", "Loaded response", r);
+			var tests = request.get("tests");
+
+			if (tests) {
+				console.log("TEST RUNNER", "Running tests");
+				pm.mediator.trigger("runRequestTest", request, currentRunCount, onFinishTests);
 			}
 			else {
+				console.log("TEST RUNNER", "No tests. Finishing");
 				finishRequestRun();
 			}
 
 		}
 
 		function onFinishTests(data) {
+			result["tests"] = data;
+
 			console.log("TEST RUNNER", "Received tests", data);
+			finishRequestRun();
 		}
 
 		function finishRequestRun() {
+			results.push(result);
+
 			if (currentRequestIndex < requestCount - 1) {
 				currentRequestIndex += 1;
 				sendRequest(currentRequestIndex);
@@ -91,7 +167,7 @@ var TestRun = Backbone.Model.extend({
 				currentRunCount += 1;
 
 				if (currentRunCount == runCount) {
-					console.log("TEST RUNNER", "Finish running", currentRunCount);
+					console.log("TEST RUNNER", "Finished all tests", results);
 				}
 				else {
 					console.log("TEST RUNNER", "Another run", currentRunCount);
@@ -139,6 +215,7 @@ var TestRuns = Backbone.Collection.extend({
 
 		pm.indexedDB.testRuns.getAllTestRuns(function(testRuns) {
 			collection.add(testRuns, { merge: true });
+			pm.mediator.trigger("loadedAllTestRuns");
 		});
 	},
 

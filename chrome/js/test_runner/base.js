@@ -144,11 +144,6 @@ pm.init = function () {
         pm.methods = requestMethods;
     }
 
-    function initializeSidebar() {
-    	var state = new TestRunnerSidebarState();
-    	var sidebar = new TestRunnerSidebar({model: state});
-	}
-
     function initializeUser() {
         var user = new User();
         pm.user = user;
@@ -156,14 +151,15 @@ pm.init = function () {
 
     function initializeTestRunner() {
     	var testRuns = new TestRuns();
-    	var testRunnerSidebarState = new TestRunnerSidebarState({testRuns: testRuns});
-    	var testRunnerSidebar = new TestRunnerSidebar({model: testRunnerSidebarState});
 
     	var o = {
     		"collections": pm.collections,
     		"envManager": pm.envManager,
     		"testRuns": testRuns
     	};
+
+        var testRunnerSidebarState = new TestRunnerSidebarState(o);
+        var testRunnerSidebar = new TestRunnerSidebar({model: testRunnerSidebarState});
 
         var testRunStarterState = new TestRunStarterState(o);
     	var testRunStarter = new TestRunStarter({model: testRunStarterState});
@@ -188,7 +184,6 @@ pm.init = function () {
                 initializeCollections();
                 initializeEnvironments();
                 initializeHeaderPresets();
-                initializeSidebar();
                 initializeUser();
 
                 // Test runner specific initializations

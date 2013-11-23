@@ -5,7 +5,7 @@ var Tester = Backbone.Model.extend({
 		};
 	},
 
-	runTest: function(request, callback) {
+	runTest: function(request, runIndex, callback) {
 		console.log("TEST RUNNER", "Trying to run a test", request);
 		console.log(request.get("tests"));
 
@@ -22,7 +22,8 @@ var Tester = Backbone.Model.extend({
 			"responseBody": response.get("text"),
 			"responseHeaders": response.get("headers"),
 			"responseTime": response.get("time"),
-			"responseCode": response.get("responseCode")
+			"responseCode": response.get("responseCode"),
+			"runIndex": runIndex
 		};
 
 		console.log("Environment is", environment);

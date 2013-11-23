@@ -94,7 +94,7 @@ var Request = Backbone.Model.extend({
 
         if (tests !== null) {
             console.log("Inside Requests, should run test now");
-            pm.mediator.trigger("runRequestTest", this, function(data) {
+            pm.mediator.trigger("runRequestTest", this, 1, function(data) {
                 request.set("testResults", data);
             });
         }

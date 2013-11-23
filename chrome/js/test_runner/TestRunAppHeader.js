@@ -13,7 +13,6 @@ var TestRunAppHeader = Backbone.View.extend({
 	      width: 1200,
 	      height: 800
 	    }
-	  }, function(win) {
 	  });
 	}
 });
