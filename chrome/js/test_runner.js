@@ -22,6 +22,8 @@ var Features = Backbone.Model.extend({
 })
 var TestRunApp = Backbone.View.extend({
 	initialize: function() {
+		var view = this;
+
 		console.log("Initialized the test runner");
 
 		var resizeTimeout;
@@ -231,6 +233,8 @@ pm.init = function () {
         var testRunStarterState = new TestRunStarterState(o);
     	var testRunStarter = new TestRunStarter({model: testRunStarterState});
 
+        var testRunResults = new TestRunResults({model: testRuns});
+
     	pm.testRuns = testRuns;
     }
 
@@ -280,11 +284,36 @@ var RunsSidebar = Backbone.View.extend({
 		    actionsEl.css('display', 'none');
 		});
 
+		$('#test-run-items').on("click", ".test-run-actions-delete", function () {
+		    var test_run_id = $(this).attr('data-test-run-id');
+		    model.deleteTestRun(test_run_id);
+		});
+
+
+		pm.mediator.on("startedTestRun", this.addRun, this);
+		pm.mediator.on("deleteTestRun", this.deleteRun, this);
 		pm.mediator.on("loadedAllTestRuns", this.render, this);
 	},
 
-	showEmptyMessage:function () {
+	addEmptyMessage:function () {
 	    $('#test-run-items').append(Handlebars.templates.message_no_test_runs());
+	},
+
+	clearEmptyMessage: function() {
+		$("#test-run-items .empty-message").remove();
+	},
+
+	addRun: function(testRun) {
+		this.clearEmptyMessage();
+		console.log("Starting a new test run", testRun);
+		$('#test-run-items').prepend(Handlebars.templates.item_test_run_sidebar(testRun.getAsJSON()));
+	},
+
+	deleteRun: function(id) {
+		if (this.model.length == 0) {
+			this.addEmptyMessage();
+		}
+		$("#sidebar-test-run-" + id).remove();
 	},
 
 	render: function() {
@@ -297,7 +326,7 @@ var RunsSidebar = Backbone.View.extend({
 			$('#test-run-items').append(Handlebars.templates.sidebar_test_run_list({items: testRuns}));
 		}
 		else {
-			this.showEmptyMessage();
+			this.addEmptyMessage();
 		}
 
 	}
@@ -319,6 +348,79 @@ var TestRunnerSidebar = Backbone.View.extend({
 	initialize: function() {
 		console.log(this.model);
 		var runsSidebar = new RunsSidebar({model: this.model.get("testRuns")});
+	}
+});
+var TestRunResults = Backbone.View.extend({
+	initialize: function() {
+		var model = this.model;
+
+		pm.mediator.on("startedTestRun", this.startNewTest, this);
+		pm.mediator.on("hideResults", this.hideResults, this);
+		pm.mediator.on("clearResults", this.clearResults, this);
+		pm.mediator.on("addResult", this.addResult, this);
+		pm.mediator.on("updateResult", this.updateResult, this);
+	},
+
+	startNewTest: function() {
+		this.showResults();
+		this.clearResults();
+	},
+
+	showResults: function() {
+		$("#results").css("display", "block");
+	},
+
+	hideResults: function() {
+		$("#results").css("display", "none");
+	},
+
+	clearResults: function() {
+		$("#test-run-status").html("");
+	},
+
+	getTestsAsArray: function(tests) {
+		var d = "";
+		var success = 0;
+		var failure = 0;
+		var total = 0;
+
+		var testsArray = [];
+		var r;
+		for (var key in tests) {
+			if (tests.hasOwnProperty(key)) {
+
+				if (tests[key]) {
+					r = "pass";
+				}
+				else {
+					r = "fail";
+				}
+
+				testsArray.push({
+					key: key,
+					value: r
+				});
+			}
+		}
+
+		return testsArray;
+	},
+
+	addResult: function(_result) {
+		var result = _.clone(_result);
+		result["testsArray"] = this.getTestsAsArray(result.tests);
+
+		$("#test-run-status").append(Handlebars.templates.item_test_run_request_result(result));
+	},
+
+	updateResult: function(_result) {
+		var result = _.clone(_result);
+		result["testsArray"] = this.getTestsAsArray(result.tests);
+
+		$("#test-run-request-result-" + result.id + " .time").html(result.time + " ms");
+		$("#test-run-request-result-" + result.id + " .status-code .code").html(result.responseCode.code);
+		$("#test-run-request-result-" + result.id + " .status-code .name").html(result.responseCode.name);
+		$("#test-run-request-result-" + result.id + " .tests").html(Handlebars.templates.tests(result));
 	}
 });
 var TestRunStarter = Backbone.View.extend({
@@ -436,7 +538,6 @@ var TestRun = Backbone.Model.extend({
 	},
 
 	initialize: function() {
-		console.log("Initialized test run", this.toJSON());
 	},
 
 	getAsJSON: function() {
@@ -528,22 +629,32 @@ var TestRun = Backbone.Model.extend({
 			var r;
 
 			if (index >= 0) {
+				// For multiple runs
 				r = results[index];
 				// TODO Calculate average time
+				r["responseCode"] = result.responseCode;
+				r["time"] = result.time;
+				r["tests"] = result.tests;
 				r["times"].push(result.responseTime);
 				r["allTests"].push(result.tests);
+				pm.mediator.trigger("updateResult", r, this);
 			}
 			else {
 				results.push(result);
+				pm.mediator.trigger("addResult", result, this);
 			}
 		}
 
 		function onSentRequest(r) {
-			console.log("TEST RUNNER", "Sent request", r);
 			result = {
-				"id": request.id,
-				"name": request.name,
-				"url": request.url,
+				"id": request.get("id"),
+				"name": request.get("name"),
+				"url": request.get("url"),
+				"responseCode": {
+					"code": 0,
+					"name": "",
+					"detail": "",
+				},
 				"times": [],
 				"allTests": []
 			}
@@ -553,15 +664,12 @@ var TestRun = Backbone.Model.extend({
 			result["responseCode"] = response.get("responseCode");
 			result["time"] = response.get("time");
 
-			console.log("TEST RUNNER", "Loaded response", r);
 			var tests = request.get("tests");
 
 			if (tests) {
-				console.log("TEST RUNNER", "Running tests");
 				pm.mediator.trigger("runRequestTest", request, currentRunCount, onFinishTests);
 			}
 			else {
-				console.log("TEST RUNNER", "No tests. Finishing");
 				finishRequestRun();
 			}
 
@@ -569,13 +677,11 @@ var TestRun = Backbone.Model.extend({
 
 		function onFinishTests(data) {
 			result["tests"] = data;
-
-			console.log("TEST RUNNER", "Received tests", data);
 			finishRequestRun();
 		}
 
 		function finishRequestRun() {
-			results.push(result);
+			addResult(result);
 
 			if (currentRequestIndex < requestCount - 1) {
 				currentRequestIndex += 1;
@@ -585,10 +691,8 @@ var TestRun = Backbone.Model.extend({
 				currentRunCount += 1;
 
 				if (currentRunCount == runCount) {
-					console.log("TEST RUNNER", "Finished all tests", results);
 				}
 				else {
-					console.log("TEST RUNNER", "Another run", currentRunCount);
 					// Re-initiate run
 					currentRequestIndex = 0;
 					sendRequest(0);
@@ -628,6 +732,15 @@ var TestRuns = Backbone.Collection.extend({
 		pm.mediator.on("startTestRun", this.onStartTestRun, this);
 	},
 
+	deleteTestRun: function(id) {
+		var collection = this;
+
+		pm.indexedDB.testRuns.deleteTestRun(id, function() {
+			collection.remove(id);
+			pm.mediator.trigger("deleteTestRun", id);
+		});
+	},
+
 	loadAllTestRuns: function() {
 		var collection = this;
 
@@ -643,8 +756,6 @@ var TestRuns = Backbone.Collection.extend({
 		var target_type = params["target_type"];
 		var environment_id = params["environment_id"];
 		var count = params["count"];
-
-		console.log("Initating test run", params);
 
 		var collection = pm.collections.get(collection_id);
 		var folder;
@@ -676,13 +787,12 @@ var TestRuns = Backbone.Collection.extend({
 			"globals": globals
 		};
 
-		console.log("Params are", testRunParams);
 		var testRun = new TestRun(testRunParams);
 
 		// TODO Add to collection and update sidebar
 		testRun.start();
 
-		pm.mediator.trigger("startedTestRun");
+		pm.mediator.trigger("startedTestRun", testRun);
 	}
 });
 var AppState = Backbone.Model.extend({
@@ -5084,9 +5194,9 @@ var VariableProcessor = Backbone.Model.extend({
         this.set("selectedEnv", environment);
     },
 
-    setGlobals: function(globals) {
+    setGlobals: function(globalsArray) {
         var globals = this.get("globals");
-        globals.set("globals", globals);
+        globals.set("globals", globalsArray);
     },
 
     containsVariable:function (string, values) {
@@ -7597,6 +7707,7 @@ var PostmanAPI = Backbone.Model.extend({
 var Request = Backbone.Model.extend({
     defaults: function() {
         return {
+            id:"",
             url:"",
             pathVariables:{},
             urlParams:{},
@@ -8057,6 +8168,8 @@ var Request = Backbone.Model.extend({
         var body = this.get("body");
         var response = this.get("response");
 
+        this.set("id", request.id);
+
         this.set("editorMode", 0);
 
         this.set("url", request.url);
@@ -8073,7 +8186,7 @@ var Request = Backbone.Model.extend({
         this.set("method", request.method.toUpperCase());
 
         if (isFromCollection) {
-            this.set("collectionid", request.collectionid);
+            this.set("collectionId", request.collectionId);
             this.set("collectionRequestId", request.id);
 
             if (typeof request.name !== "undefined") {
@@ -8313,7 +8426,6 @@ var Request = Backbone.Model.extend({
         // Prepare body
         if (this.isMethodWithBody(method)) {
             var data = body.get("data");
-            console.log("Send a method with body", data);
             if(data === false) {
                 xhr.send();
             }
@@ -8329,7 +8441,6 @@ var Request = Backbone.Model.extend({
 
         //Save the request
         if (pm.settings.getSetting("autoSaveRequest")) {
-            console.log("Saving data", body.get("dataAsObjects"));
             pm.history.addRequest(originalUrl,
                 method,
                 this.getPackedHeaders(),
@@ -14317,9 +14428,6 @@ var Tester = Backbone.Model.extend({
 	},
 
 	runTest: function(request, runIndex, callback) {
-		console.log("TEST RUNNER", "Trying to run a test", request);
-		console.log(request.get("tests"));
-
 		var testCode = request.get("tests");
 
 		// Wrapper function
@@ -14336,8 +14444,6 @@ var Tester = Backbone.Model.extend({
 			"responseCode": response.get("responseCode"),
 			"runIndex": runIndex
 		};
-
-		console.log("Environment is", environment);
 
 		this.postCode(baseCode, environment);
 

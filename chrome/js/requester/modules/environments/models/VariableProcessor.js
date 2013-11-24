@@ -66,9 +66,9 @@ var VariableProcessor = Backbone.Model.extend({
         this.set("selectedEnv", environment);
     },
 
-    setGlobals: function(globals) {
+    setGlobals: function(globalsArray) {
         var globals = this.get("globals");
-        globals.set("globals", globals);
+        globals.set("globals", globalsArray);
     },
 
     containsVariable:function (string, values) {

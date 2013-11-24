@@ -1,0 +1,29 @@
+<div id="test-run-request-result-{{id}}" class="test-run-request-result" data-id="{{id}}">
+    <div class="meta clearfix">
+        <div class="left">
+            <div class="name">
+                {{name}}
+            </div>
+            <div class="url">
+                {{url}}
+            </div>
+        </div>
+        <div class="right">
+            <div class="status-code">
+                <span class="code">{{responseCode.code}}</span>
+                <span class="name">{{responseCode.name}}</span>
+            </div>
+            <div class="time">
+                {{time}} ms
+            </div>
+        </div>
+
+    </div>
+    <div class="tests">
+        {{#each testsArray}}
+            <div class="test">
+                <span class="label label-test-result-{{value}}">{{value}}</span> {{key}}
+            </div>
+        {{/each}}
+    </div>
+</div>

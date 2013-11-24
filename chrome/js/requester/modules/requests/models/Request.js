@@ -1,6 +1,7 @@
 var Request = Backbone.Model.extend({
     defaults: function() {
         return {
+            id:"",
             url:"",
             pathVariables:{},
             urlParams:{},
@@ -461,6 +462,8 @@ var Request = Backbone.Model.extend({
         var body = this.get("body");
         var response = this.get("response");
 
+        this.set("id", request.id);
+
         this.set("editorMode", 0);
 
         this.set("url", request.url);
@@ -477,7 +480,7 @@ var Request = Backbone.Model.extend({
         this.set("method", request.method.toUpperCase());
 
         if (isFromCollection) {
-            this.set("collectionid", request.collectionid);
+            this.set("collectionId", request.collectionId);
             this.set("collectionRequestId", request.id);
 
             if (typeof request.name !== "undefined") {
@@ -717,7 +720,6 @@ var Request = Backbone.Model.extend({
         // Prepare body
         if (this.isMethodWithBody(method)) {
             var data = body.get("data");
-            console.log("Send a method with body", data);
             if(data === false) {
                 xhr.send();
             }
@@ -733,7 +735,6 @@ var Request = Backbone.Model.extend({
 
         //Save the request
         if (pm.settings.getSetting("autoSaveRequest")) {
-            console.log("Saving data", body.get("dataAsObjects"));
             pm.history.addRequest(originalUrl,
                 method,
                 this.getPackedHeaders(),

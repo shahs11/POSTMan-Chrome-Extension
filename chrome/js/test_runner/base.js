@@ -164,6 +164,8 @@ pm.init = function () {
         var testRunStarterState = new TestRunStarterState(o);
     	var testRunStarter = new TestRunStarter({model: testRunStarterState});
 
+        var testRunResults = new TestRunResults({model: testRuns});
+
     	pm.testRuns = testRuns;
     }
 

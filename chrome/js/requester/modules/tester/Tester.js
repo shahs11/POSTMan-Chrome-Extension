@@ -6,9 +6,6 @@ var Tester = Backbone.Model.extend({
 	},
 
 	runTest: function(request, runIndex, callback) {
-		console.log("TEST RUNNER", "Trying to run a test", request);
-		console.log(request.get("tests"));
-
 		var testCode = request.get("tests");
 
 		// Wrapper function
@@ -25,8 +22,6 @@ var Tester = Backbone.Model.extend({
 			"responseCode": response.get("responseCode"),
 			"runIndex": runIndex
 		};
-
-		console.log("Environment is", environment);
 
 		this.postCode(baseCode, environment);
 

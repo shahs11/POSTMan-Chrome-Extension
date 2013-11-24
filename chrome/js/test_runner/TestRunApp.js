@@ -1,5 +1,7 @@
 var TestRunApp = Backbone.View.extend({
 	initialize: function() {
+		var view = this;
+
 		console.log("Initialized the test runner");
 
 		var resizeTimeout;

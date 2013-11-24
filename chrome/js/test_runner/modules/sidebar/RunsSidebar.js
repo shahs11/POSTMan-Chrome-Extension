@@ -13,11 +13,36 @@ var RunsSidebar = Backbone.View.extend({
 		    actionsEl.css('display', 'none');
 		});
 
+		$('#test-run-items').on("click", ".test-run-actions-delete", function () {
+		    var test_run_id = $(this).attr('data-test-run-id');
+		    model.deleteTestRun(test_run_id);
+		});
+
+
+		pm.mediator.on("startedTestRun", this.addRun, this);
+		pm.mediator.on("deleteTestRun", this.deleteRun, this);
 		pm.mediator.on("loadedAllTestRuns", this.render, this);
 	},
 
-	showEmptyMessage:function () {
+	addEmptyMessage:function () {
 	    $('#test-run-items').append(Handlebars.templates.message_no_test_runs());
+	},
+
+	clearEmptyMessage: function() {
+		$("#test-run-items .empty-message").remove();
+	},
+
+	addRun: function(testRun) {
+		this.clearEmptyMessage();
+		console.log("Starting a new test run", testRun);
+		$('#test-run-items').prepend(Handlebars.templates.item_test_run_sidebar(testRun.getAsJSON()));
+	},
+
+	deleteRun: function(id) {
+		if (this.model.length == 0) {
+			this.addEmptyMessage();
+		}
+		$("#sidebar-test-run-" + id).remove();
 	},
 
 	render: function() {
@@ -30,7 +55,7 @@ var RunsSidebar = Backbone.View.extend({
 			$('#test-run-items').append(Handlebars.templates.sidebar_test_run_list({items: testRuns}));
 		}
 		else {
-			this.showEmptyMessage();
+			this.addEmptyMessage();
 		}
 
 	}
