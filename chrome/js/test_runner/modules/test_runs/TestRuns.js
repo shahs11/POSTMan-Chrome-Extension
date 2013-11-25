@@ -61,12 +61,11 @@ var TestRun = Backbone.Model.extend({
 		// Filter executable requests
 		var allRequests;
 
-		// TODO Order requests according to the order array
 		if (target_type === "folder") {
 			allRequests = collection.getRequestsInFolder(folder);
 		}
 		else {
-			allRequests = _.clone(collection.get("requests"));
+			allRequests = collection.getRequestsInCollection();
 		}
 
 		this.addToDataStore(this.getAsJSON());
@@ -268,8 +267,6 @@ var TestRuns = Backbone.Collection.extend({
 		};
 
 		var testRun = new TestRun(testRunParams);
-
-		// TODO Add to collection and update sidebar
 		testRun.start();
 
 		pm.mediator.trigger("startedTestRun", testRun);

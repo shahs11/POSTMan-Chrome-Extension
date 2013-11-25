@@ -581,12 +581,11 @@ var TestRun = Backbone.Model.extend({
 		// Filter executable requests
 		var allRequests;
 
-		// TODO Order requests according to the order array
 		if (target_type === "folder") {
 			allRequests = collection.getRequestsInFolder(folder);
 		}
 		else {
-			allRequests = _.clone(collection.get("requests"));
+			allRequests = collection.getRequestsInCollection();
 		}
 
 		this.addToDataStore(this.getAsJSON());
@@ -788,8 +787,6 @@ var TestRuns = Backbone.Collection.extend({
 		};
 
 		var testRun = new TestRun(testRunParams);
-
-		// TODO Add to collection and update sidebar
 		testRun.start();
 
 		pm.mediator.trigger("startedTestRun", testRun);
@@ -1080,6 +1077,46 @@ var PmCollection = Backbone.Model.extend({
         return folders[location];
     },
 
+    getRequestsInCollection: function() {
+        var requests = _.clone(this.get("requests"));
+        var order = _.clone(this.get("order"));
+        var orderedRequests = [];
+
+        var folders = this.get("folders");
+        var folderCount = folders.length;
+
+        if (folderCount > 0) {
+            for(var i = 0; i < folderCount; i++) {
+                folder = _.clone(folders[i]);
+                folderOrder = folder.order;
+                folderRequests = [];
+
+                for(var j = 0; j < folderOrder.length; j++) {
+                    id = folderOrder[j];
+
+                    var index = arrayObjectIndexOf(requests, id, "id");
+
+                    if(index >= 0) {
+                        folderRequests.push(requests[index]);
+                        requests.splice(index, 1);
+                    }
+                }
+
+                folderRequests = this.orderRequests(folderRequests, folderOrder);
+                orderedRequests = _.union(orderedRequests, folderRequests);
+            }
+
+            orderedRequests = _.union(orderedRequests, this.orderRequests(requests, order));
+        }
+        else {
+            orderedRequests = this.orderRequests(requests, order)
+        }
+
+        console.log("ORDER", orderedRequests);
+
+        return orderedRequests;
+    },
+
     getRequestsInFolder: function(folder) {
         var folderOrder = folder.order;
         var requests = _.clone(this.get("requests"));
@@ -1094,7 +1131,11 @@ var PmCollection = Backbone.Model.extend({
             }
         }
 
-        return folderRequests;
+        var orderedRequests = this.orderRequests(folderRequests, folder.order);
+
+        console.log("ORDER", folderRequests, orderedRequests);
+
+        return orderedRequests;
     },
 
     addFolder: function(folder) {
@@ -1182,6 +1223,75 @@ var PmCollection = Backbone.Model.extend({
 
     isUploaded: function() {
         return this.get("remote_id") !== 0;
+    },
+
+    // Uses arrays
+    orderRequests: function() {
+        console.log("Ordering requests");
+
+        var folders = this.get("folders");
+        var requests = this.get("requests");
+
+        var folderCount = folders.length;
+        var folder;
+        var folderOrder;
+        var id;
+        var existsInOrder;
+        var folderRequests;
+
+        var newFolders = [];
+
+        for(var i = 0; i < folderCount; i++) {
+            folder = _.clone(folders[i]);
+            folderOrder = folder.order;
+            folderRequests = [];
+
+            for(var j = 0; j < folderOrder.length; j++) {
+                id = folderOrder[j];
+
+                var index = arrayObjectIndexOf(requests, id, "id");
+
+                if(index >= 0) {
+                    folderRequests.push(requests[index]);
+                    requests.splice(index, 1);
+                }
+            }
+
+            folder["requests"] = this.orderRequests(folderRequests, folderOrder);
+            newFolders.push(folder);
+        }
+
+        this.set("folders", newFolders);
+        this.set("requests", this.orderRequests(requests, this.get("order")));
+
+        console.log("Ordered requests", this.get("requests"), this.get("folders"));
+
+        return collection;
+    },
+
+    orderRequests: function(inRequests, order) {
+        var requests = _.clone(inRequests);
+
+        function requestFinder(request) {
+            return request.id === order[j];
+        }
+
+        if (order.length === 0) {
+            requests.sort(sortAlphabetical);
+        }
+        else {
+            var orderedRequests = [];
+            for (var j = 0, len = order.length; j < len; j++) {
+                var element = _.find(requests, requestFinder);
+                if(element) {
+                    orderedRequests.push(element);
+                }
+            }
+
+            requests = orderedRequests;
+        }
+
+        return requests;
     }
 });
 var PmCollectionRequest = Backbone.Model.extend({

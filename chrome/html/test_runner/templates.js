@@ -190,7 +190,7 @@ function program1(depth0,data) {
 function program3(depth0,data) {
   
   var buffer = "", stack1;
-  buffer += "\n            <div class=\"test-run-environment-name\">\n                "
+  buffer += "\n            <div class=\"test-run-environment-name\">\n                <strong>Environment</strong> "
     + escapeExpression(((stack1 = ((stack1 = depth0.environment),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "\n            </div>\n            ";
   return buffer;
