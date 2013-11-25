@@ -35,6 +35,8 @@ var PmCollections = Backbone.Collection.extend({
     initialize: function() {
         this.loadAllCollections();
 
+        // TODO Add events for in-memory updates
+
         pm.mediator.on("addDirectoryCollection", this.onAddDirectoryCollection, this);
         pm.mediator.on("addResponseToCollectionRequest", this.addResponseToCollectionRequest, this);
         pm.mediator.on("updateResponsesForCollectionRequest", this.updateResponsesForCollectionRequest, this);

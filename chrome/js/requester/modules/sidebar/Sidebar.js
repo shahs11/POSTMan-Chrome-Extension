@@ -16,7 +16,6 @@ var Sidebar = Backbone.View.extend({
 
     	var activeSidebarSection = pm.settings.getSetting("activeSidebarSection");
 
-
         $('#sidebar-toggle').on("click", function () {
             view.toggleSidebar();
         });

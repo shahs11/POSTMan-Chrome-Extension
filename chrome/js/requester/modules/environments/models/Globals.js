@@ -132,6 +132,7 @@ var Globals = Backbone.Model.extend({
         var o = {'globals': JSON.stringify(globals)};
 
         pm.storage.setValue(o, function() {
+            pm.mediator.trigger("sendMessageObject", "updatedGlobals", globals);
             model.addToSyncableFilesystem(model.get("syncFileID"));
         });
     },

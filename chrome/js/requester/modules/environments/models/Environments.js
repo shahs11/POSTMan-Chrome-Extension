@@ -30,6 +30,8 @@ var Environments = Backbone.Collection.extend({
     initialize:function () {
         var collection = this;
 
+        // TODO Add events for in-memory updates
+
         this.startListeningForFileSystemSyncEvents();
 
         pm.indexedDB.environments.getAllEnvironments(function (environments) {
