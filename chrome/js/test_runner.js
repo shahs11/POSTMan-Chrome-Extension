@@ -230,8 +230,8 @@ pm.init = function () {
         var testRunnerSidebarState = new TestRunnerSidebarState(o);
         var testRunnerSidebar = new TestRunnerSidebar({model: testRunnerSidebarState});
 
-        var testRunStarterState = new TestRunStarterState(o);
-    	var testRunStarter = new TestRunStarter({model: testRunStarterState});
+        var testRunnerState = new TestRunnerState(o);
+        var testRunnerController = new TestRunnerController({model: testRunnerState});
 
         var testRunResults = new TestRunResults({model: testRuns});
 
@@ -548,9 +548,22 @@ var TestRunStarter = Backbone.View.extend({
 		pm.mediator.trigger("startTestRun", params);
 	}
 });
-var TestRunStarterState = Backbone.Model.extend({
+
+var TestRunStatusHeader = Backbone.View.extend({
+	initialize: function() {
+
+	}
+});
+var TestRunnerController = Backbone.View.extend({
+	initialize: function() {
+		var testRunStarter = new TestRunStarter({model: this.model});
+		var testRunStatusHeader = new TestRunStatusHeader({model: this.model});
+	}
+});
+var TestRunnerState = Backbone.Model.extend({
 	defaults: function() {
 		return {
+			"state": "default", //default or running
 			"collections": null,
 			"envManager": null,
 			"testRuns": null
@@ -571,6 +584,24 @@ var TestRunStarterState = Backbone.Model.extend({
 		pm.mediator.on("loadedEnvironments", function() {
 			model.trigger("loadedEnvironments");
 		});
+
+		pm.mediator.on("startTestRun", this.onStartTestRun, this);
+	},
+
+	showView: function(key) {
+		if (key === "status") {
+			$("#test-run-starter-form").css("display", "none");
+			$("#test-run-progress").css("display", "block");
+		}
+		else if (key === "default") {
+			$("#test-run-starter-form").css("display", "block");
+			$("#test-run-progress").css("display", "none");
+		}
+	},
+
+	onStartTestRun: function() {
+		this.set("state", "running");
+		this.showView("status");
 	}
 });
 var TestRun = Backbone.Model.extend({

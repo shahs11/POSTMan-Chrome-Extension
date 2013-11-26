@@ -161,8 +161,8 @@ pm.init = function () {
         var testRunnerSidebarState = new TestRunnerSidebarState(o);
         var testRunnerSidebar = new TestRunnerSidebar({model: testRunnerSidebarState});
 
-        var testRunStarterState = new TestRunStarterState(o);
-    	var testRunStarter = new TestRunStarter({model: testRunStarterState});
+        var testRunnerState = new TestRunnerState(o);
+        var testRunnerController = new TestRunnerController({model: testRunnerState});
 
         var testRunResults = new TestRunResults({model: testRuns});
 

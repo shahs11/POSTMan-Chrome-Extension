@@ -215,6 +215,9 @@ input[type="file"] {
 #test-run-results-container {
   margin-top: -1px; }
 
+#test-run-progress {
+  display: none; }
+
 #test-run-result-views {
   margin-left: 0; }
 
