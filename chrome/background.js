@@ -1,5 +1,5 @@
 chrome.app.runtime.onLaunched.addListener(function() {
-  chrome.app.window.create('requester.html', {
+  chrome.app.window.create('test_runner.html', {
     "bounds": {
       width: 1000,
       height: 800

@@ -289,7 +289,6 @@ var RunsSidebar = Backbone.View.extend({
 		    model.deleteTestRun(test_run_id);
 		});
 
-
 		pm.mediator.on("startedTestRun", this.addRun, this);
 		pm.mediator.on("deleteTestRun", this.deleteRun, this);
 		pm.mediator.on("loadedAllTestRuns", this.render, this);
@@ -310,9 +309,13 @@ var RunsSidebar = Backbone.View.extend({
 	},
 
 	deleteRun: function(id) {
-		if (this.model.length == 0) {
+		console.log(this.model, this.model.toJSON());
+
+		console.log("Test run length", this.model.toJSON().length);
+		if (this.model.toJSON().length == 0) {
 			this.addEmptyMessage();
 		}
+
 		$("#sidebar-test-run-" + id).remove();
 	},
 
@@ -321,6 +324,8 @@ var RunsSidebar = Backbone.View.extend({
 		var testRuns = model.toJSON();
 
 		$('#test-run-items').html("");
+
+		console.log("Testruns", testRuns.length);
 
 		if (testRuns.length > 0) {
 			$('#test-run-items').append(Handlebars.templates.sidebar_test_run_list({items: testRuns}));
@@ -589,14 +594,14 @@ var TestRunnerState = Backbone.Model.extend({
 	},
 
 	showView: function(key) {
-		if (key === "status") {
-			$("#test-run-starter-form").css("display", "none");
-			$("#test-run-progress").css("display", "block");
-		}
-		else if (key === "default") {
-			$("#test-run-starter-form").css("display", "block");
-			$("#test-run-progress").css("display", "none");
-		}
+		// if (key === "status") {
+		// 	$("#test-run-starter-form").css("display", "none");
+		// 	$("#test-run-progress").css("display", "block");
+		// }
+		// else if (key === "default") {
+		// 	$("#test-run-starter-form").css("display", "block");
+		// 	$("#test-run-progress").css("display", "none");
+		// }
 	},
 
 	onStartTestRun: function() {
@@ -819,9 +824,11 @@ var TestRuns = Backbone.Collection.extend({
 
 	deleteTestRun: function(id) {
 		var collection = this;
+		console.log(collection.toJSON());
 
 		pm.indexedDB.testRuns.deleteTestRun(id, function() {
 			collection.remove(id);
+			console.log("Deleted test run", collection);
 			pm.mediator.trigger("deleteTestRun", id);
 		});
 	},
@@ -874,6 +881,8 @@ var TestRuns = Backbone.Collection.extend({
 
 		var testRun = new TestRun(testRunParams);
 		testRun.start();
+
+		this.add(testRun);
 
 		pm.mediator.trigger("startedTestRun", testRun);
 	}
@@ -12080,6 +12089,7 @@ pm.indexedDB = {
     },
 
     onerror:function (event, callback) {
+        console.log("Could not load DB", event);
         pm.mediator.trigger("error");
     },
 
@@ -14123,14 +14133,20 @@ var TCPManager = Backbone.View.extend({
 			pm.mediator.trigger("notifySuccess", "Saved settings");
 		});
 
+		$("#postman-proxy-target").on("change", function() {
+			view.updateModel();
+		});
+
 		$("#tcp-manager-connect-toggle").on("click", function() {
 			var status = model.get("status");
 
 			if (status === "connected") {
-				view.disconnect();
+				tracker.sendEvent('proxy', 'disconnect');
+                view.disconnect();
 			}
 			else if (status === "disconnected") {
-				view.connect();
+				tracker.sendEvent('proxy', 'connect');
+                view.connect();
 			}
 		});
 
@@ -14148,7 +14164,7 @@ var TCPManager = Backbone.View.extend({
 		var target_type;
 		var target_id;
 
-		if (target_value === "history_history") {
+		if (target_value === "history" || target_value === "history_history") {
 			target_type = "history";
 			target_id = "history";
 		}
@@ -14159,6 +14175,8 @@ var TCPManager = Backbone.View.extend({
 
 		model.set("target_type", target_type);
 		model.set("target_id", target_id);
+
+		console.log("Setting target_type", target_type);
 
 		var filters = {
 			"url": $("#postman-proxy-filter-url").val(),
@@ -14249,7 +14267,7 @@ var TCPReader = Backbone.Model.extend({
 			"socketInfo": null,
 			"host": "127.0.0.1",
 			"port": "5005",
-			"target_type": "",
+			"target_type": "history",
 			"target_id": "",
 			"status": "disconnected",
 			"filters": {
@@ -14374,6 +14392,8 @@ var TCPReader = Backbone.Model.extend({
 		var collection;
 		var target_id;
 
+		console.log("Settings are", this.toJSON());
+
 		if (this.isAllowed(request)) {
 			if (target_type === "history") {
 				pm.history.addRequestFromJSON(data);
@@ -14390,11 +14410,17 @@ var TCPReader = Backbone.Model.extend({
 
 		var socket = chrome.socket;
 		socket.read(socketId, function(readInfo) {
-			console.log("READ", readInfo);
-			// Parse the request.
-			var data = arrayBufferToString(readInfo.data);
-			model.addRequest(data);
-			model.writeResponse(socketId, "It worked!", false);
+			try {
+			    console.log("READ", readInfo);
+			    // Parse the request.
+			    var data = arrayBufferToString(readInfo.data);
+			    model.addRequest(data);
+			    model.writeResponse(socketId, "received-request", false);
+			}
+			catch(e) {
+			    console.log("Something went wrong while reading a request", e);
+			    model.writeResponse(socketId, "received-request", false);
+			}
 		});
 	},
 
@@ -14458,7 +14484,7 @@ var TCPReaderStatus = Backbone.View.extend({
 
 		model.on("change", this.render, this);
 		$('#tcp-reader-status').on("click", function () {
-			console.log("Clicked on TCP Reader");
+			tracker.sendEvent('proxy', 'click');
 		    pm.mediator.trigger("showTCPManager");
 		});
 	},

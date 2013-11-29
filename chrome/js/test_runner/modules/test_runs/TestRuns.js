@@ -213,9 +213,11 @@ var TestRuns = Backbone.Collection.extend({
 
 	deleteTestRun: function(id) {
 		var collection = this;
+		console.log(collection.toJSON());
 
 		pm.indexedDB.testRuns.deleteTestRun(id, function() {
 			collection.remove(id);
+			console.log("Deleted test run", collection);
 			pm.mediator.trigger("deleteTestRun", id);
 		});
 	},
@@ -268,6 +270,8 @@ var TestRuns = Backbone.Collection.extend({
 
 		var testRun = new TestRun(testRunParams);
 		testRun.start();
+
+		this.add(testRun);
 
 		pm.mediator.trigger("startedTestRun", testRun);
 	}

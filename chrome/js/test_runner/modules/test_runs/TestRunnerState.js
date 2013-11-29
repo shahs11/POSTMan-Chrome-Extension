@@ -27,14 +27,14 @@ var TestRunnerState = Backbone.Model.extend({
 	},
 
 	showView: function(key) {
-		if (key === "status") {
-			$("#test-run-starter-form").css("display", "none");
-			$("#test-run-progress").css("display", "block");
-		}
-		else if (key === "default") {
-			$("#test-run-starter-form").css("display", "block");
-			$("#test-run-progress").css("display", "none");
-		}
+		// if (key === "status") {
+		// 	$("#test-run-starter-form").css("display", "none");
+		// 	$("#test-run-progress").css("display", "block");
+		// }
+		// else if (key === "default") {
+		// 	$("#test-run-starter-form").css("display", "block");
+		// 	$("#test-run-progress").css("display", "none");
+		// }
 	},
 
 	onStartTestRun: function() {

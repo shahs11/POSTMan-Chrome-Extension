@@ -18,7 +18,6 @@ var RunsSidebar = Backbone.View.extend({
 		    model.deleteTestRun(test_run_id);
 		});
 
-
 		pm.mediator.on("startedTestRun", this.addRun, this);
 		pm.mediator.on("deleteTestRun", this.deleteRun, this);
 		pm.mediator.on("loadedAllTestRuns", this.render, this);
@@ -39,9 +38,13 @@ var RunsSidebar = Backbone.View.extend({
 	},
 
 	deleteRun: function(id) {
-		if (this.model.length == 0) {
+		console.log(this.model, this.model.toJSON());
+
+		console.log("Test run length", this.model.toJSON().length);
+		if (this.model.toJSON().length == 0) {
 			this.addEmptyMessage();
 		}
+
 		$("#sidebar-test-run-" + id).remove();
 	},
 
@@ -50,6 +53,8 @@ var RunsSidebar = Backbone.View.extend({
 		var testRuns = model.toJSON();
 
 		$('#test-run-items').html("");
+
+		console.log("Testruns", testRuns.length);
 
 		if (testRuns.length > 0) {
 			$('#test-run-items').append(Handlebars.templates.sidebar_test_run_list({items: testRuns}));
