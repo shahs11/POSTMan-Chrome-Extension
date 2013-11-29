@@ -26,19 +26,8 @@ var TestRunnerState = Backbone.Model.extend({
 		pm.mediator.on("startTestRun", this.onStartTestRun, this);
 	},
 
-	showView: function(key) {
-		// if (key === "status") {
-		// 	$("#test-run-starter-form").css("display", "none");
-		// 	$("#test-run-progress").css("display", "block");
-		// }
-		// else if (key === "default") {
-		// 	$("#test-run-starter-form").css("display", "block");
-		// 	$("#test-run-progress").css("display", "none");
-		// }
-	},
-
 	onStartTestRun: function() {
 		this.set("state", "running");
-		this.showView("status");
+		this.trigger("showView", "status");
 	}
 });
