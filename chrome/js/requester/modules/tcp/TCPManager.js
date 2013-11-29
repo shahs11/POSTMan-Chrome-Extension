@@ -16,14 +16,20 @@ var TCPManager = Backbone.View.extend({
 			pm.mediator.trigger("notifySuccess", "Saved settings");
 		});
 
+		$("#postman-proxy-target").on("change", function() {
+			view.updateModel();
+		});
+
 		$("#tcp-manager-connect-toggle").on("click", function() {
 			var status = model.get("status");
 
 			if (status === "connected") {
-				view.disconnect();
+				tracker.sendEvent('proxy', 'disconnect');
+                view.disconnect();
 			}
 			else if (status === "disconnected") {
-				view.connect();
+				tracker.sendEvent('proxy', 'connect');
+                view.connect();
 			}
 		});
 
@@ -41,7 +47,7 @@ var TCPManager = Backbone.View.extend({
 		var target_type;
 		var target_id;
 
-		if (target_value === "history_history") {
+		if (target_value === "history" || target_value === "history_history") {
 			target_type = "history";
 			target_id = "history";
 		}
@@ -52,6 +58,8 @@ var TCPManager = Backbone.View.extend({
 
 		model.set("target_type", target_type);
 		model.set("target_id", target_id);
+
+		console.log("Setting target_type", target_type);
 
 		var filters = {
 			"url": $("#postman-proxy-filter-url").val(),

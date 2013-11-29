@@ -4,6 +4,10 @@ Handlebars.registerHelper('formatTime', function(time) {
     return d.toLocaleString();
 });
 
+function gapiIsLoaded() {
+
+}
+
 function isMethodWithBody(method) {
     var methodsWithBody = ["POST", "PUT", "PATCH", "DELETE", "LINK", "UNLINK"];
     method = method.toUpperCase();

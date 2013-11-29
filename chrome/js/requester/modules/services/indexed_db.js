@@ -18,6 +18,7 @@ pm.indexedDB = {
     },
 
     onerror:function (event, callback) {
+        console.log("Could not load DB", event);
         pm.mediator.trigger("error");
     },
 
