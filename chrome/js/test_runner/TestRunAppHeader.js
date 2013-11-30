@@ -10,8 +10,10 @@ var TestRunAppHeader = Backbone.View.extend({
 	onOpenModule: function() {
 	  chrome.app.window.create('requester.html', {
 	    "bounds": {
-	      width: 1200,
-	      height: 800
+	    	top: 100,
+	    	left: 2100,
+	      	width: 1200,
+	      	height: 800
 	    }
 	  });
 	}
