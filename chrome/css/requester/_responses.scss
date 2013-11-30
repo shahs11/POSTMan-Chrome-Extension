@@ -27,7 +27,8 @@
 }
 
 #response-headers-container,
-#response-cookies-container {
+#response-cookies-container,
+#response-tests-container {
     margin-top: 20px;
     max-width: 1000px;
     font-size: 11px;
@@ -60,10 +61,37 @@
         margin-right: 5px;
         cursor: pointer;
     }
+
+    .response-header-value {
+        float: left;
+    }
 }
 
-.response-header-value {
-    float: left;
+.response-test {
+    font-family: $font;
+    list-style: none;
+    margin-bottom: 5px;
+    color: #111;
+    font-size: 14px;
+
+    .response-test-name {
+        font-weight: bold;
+        float: left;
+        margin-right: 5px;
+    }
+
+
+    .response-test-value {
+        float: left;
+    }
+}
+
+.response-test-color-pass {
+    color: green;
+}
+
+.response-test-color-failed {
+    color: #B3003C;
 }
 
 #responsedata,
@@ -90,7 +118,10 @@
     user-select: text;
 }
 
-#response-time, #response-status, #response-sample-status {
+#response-time,
+#response-status,
+#response-sample-status,
+#test-results {
     margin-top: 8px;
 }
 
@@ -291,7 +322,8 @@
     margin-top: 17px;
 }
 
-#response-headers {
+#response-headers,
+#response-tests {
     margin-top: 15px;
     margin-bottom: 15px;
     margin-left: 0;

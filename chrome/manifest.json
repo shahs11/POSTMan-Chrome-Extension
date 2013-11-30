@@ -25,8 +25,7 @@
     },
 
     "sandbox": {
-      "pages": ["embedded_ga_host.html"],
-      "content_security_policy": "sandbox allow-scripts; script-src https://ssl.google-analytics.com"
+      "pages": ["embedded_ga_host.html", "tester_sandbox.html"]
     },
 
     "default_locale":"en",

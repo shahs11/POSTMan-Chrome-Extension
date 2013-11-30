@@ -1,0 +1,65 @@
+<div id="main-container">
+<div id="main" class="content">
+	<section id="test-run">
+		<div id="test-run-starter">
+			<div id="request-types" class="request-tabs-container clearfix">
+				<ul class="request-helper-tabs">
+				    <li class="active" data-id="start">Start test run</li>
+				    <li data-id="stats">Stats</li>
+				</ul>
+			</div>
+			<div id="test-run-starter-form">
+				<form class="form-horizontal">
+				    <div class="control-group">
+				        <label class="control-label" for="select-collection">Collection</label>
+
+				        <div class="controls">
+				            <select name="select-collection" class="medium" id="select-collection">
+				                <option value="0">Select</option>
+				            </select>
+				        </div>
+				    </div>
+
+				    <div class="control-group">
+				        <label class="control-label" for="select-environment">Environment</label>
+
+				        <div class="controls">
+				            <select name="select-environment" class="medium" id="select-environment">
+				                <option value="0">No environment</option>
+				            </select>
+				        </div>
+				    </div>
+
+				    <div class="control-group">
+				        <label class="control-label" for="test-run-count">Counts</label>
+
+				        <div class="controls">
+				            <input class="input-small" type="text" name="test-run-count" id="test-run-count" value="1"/>
+				        </div>
+				    </div>
+
+				    <div class="control-group">
+				        <div class="controls">
+				            <a id="start-test-run" class="btn btn-primary">Start</a>
+				        </div>
+				    </div>
+				</form>
+			</div>
+			<div id="test-run-progress">
+				<h2>Progress</h2>
+			</div>
+		</div>
+	</section>
+	<section id="results">
+		<div id="test-run-results-container">
+			<div id="test-run-result-views" class="request-tabs-container clearfix">
+				<ul class="request-helper-tabs">
+				    <li class="active" data-id="status">Status</li>
+				</ul>
+			</div>
+			<div id="test-run-status">
+			</div>
+		</div>
+	</section>
+</div>
+</div>

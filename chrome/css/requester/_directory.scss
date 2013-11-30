@@ -43,6 +43,11 @@
             margin: 0;
         }
 
+        p.user_name {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
         p.updated_at {
             font-size: 11px;
             color: #999;
@@ -103,6 +108,11 @@
 #directory-collection-viewer {
     p {
         margin: 0;
+    }
+
+    #directory-collection-viewer-user-name {
+        font-weight: bold;
+        margin-bottom: 10px;
     }
 
     #directory-collection-viewer-description {

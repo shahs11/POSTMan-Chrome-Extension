@@ -1,0 +1,97 @@
+#test-run-results-container {
+	margin-top: -1px;
+}
+
+#test-run-progress {
+	display: none;
+}
+
+#test-run-result-views {
+	margin-left: 0;
+}
+
+#test-run {
+    padding: 0 0 20px 20px;
+    border-bottom: solid thin $input_border_color;
+}
+
+#results {
+	display: none;
+}
+
+#test-run-status {
+	padding: 10px;
+}
+
+.test-run-request-result {
+	border-bottom: solid thin #efefef;
+	margin-bottom: 10px;
+	padding-bottom: 10px;
+	padding-left: 10px;
+	width: 500px;
+
+	.meta {
+		.left {
+			float: left;
+
+			.name {
+				font-weight: bold;
+			}
+
+			.url {
+				color: #444;
+			}
+		}
+
+		.right {
+			float: right;
+
+			.status-code {
+				font-weight: bold;
+			}
+
+			.time {
+				color: #aaa;
+				text-align: right;
+			}
+		}
+	}
+
+	.tests {
+		font-size: 13px;
+		margin-top: 10px;
+
+		.label-test-result-pass {
+			font-size: 11px;
+			text-transform: uppercase;
+			display: inline-block;
+			width: 30px;
+			text-align: center;
+			background-color: green;
+		}
+
+		.label-test-result-fail {
+			font-size: 11px;
+			text-transform: uppercase;
+			width: 30px;
+			text-align: center;
+			display: inline-block;
+			background-color: #9C0000;
+		}
+	}
+}
+
+.test-run {
+	.test-run-collection-name {
+		font-weight: bold;
+	}
+
+	.test-run-environment-name {
+		font-size: 11px;
+	}
+
+	.test-run-time {
+		color: #666;
+		font-size: 11px;
+	}
+}

@@ -1,3 +1,9 @@
+Handlebars.registerHelper('formatTime', function(time) {
+    time = parseInt(time, 10);
+    var d = new Date(time);
+    return d.toLocaleString();
+});
+
 function gapiIsLoaded() {
 
 }

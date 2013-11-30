@@ -573,6 +573,10 @@
                     id="preview-request">Preview
             </button>
             <button class="btn"
+                    data-action="write-tests"
+                    id="write-tests">Tests
+            </button>
+            <button class="btn"
                     id="add-to-collection"
                     href="#modal-add-to-collection"
                     data-toggle="modal" data-backdrop="static"
@@ -608,6 +612,7 @@
                     <li class="active" data-section="body">Body</li>
                     <li data-section="cookies" id="response-tabs-cookies">Cookies</li>
                     <li data-section="headers">Headers</li>
+                    <li data-section="tests">Tests</li>
                 </ul>
                 <div id="response-status">
                 </div>
@@ -721,6 +726,9 @@
             </div>
             <div id="response-headers-container">
                 <ul id="response-headers"></ul>
+            </div>
+            <div id="response-tests-container">
+                <ul id="response-tests"></ul>
             </div>
         </div>
     </section>

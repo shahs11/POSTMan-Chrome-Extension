@@ -5,7 +5,7 @@ module.exports = function(grunt) {
     manifest: grunt.file.readJSON('chrome/manifest.json'),
 
     concat: {
-      dist: {
+      requester_js: {
         src: ['chrome/js/requester/**/*.js'],
         dest: 'chrome/js/requester.js'
       },
@@ -31,13 +31,38 @@ module.exports = function(grunt) {
         'chrome/html/requester/tester.html'
         ],
         dest: 'chrome/tester.html'
+      },
+
+      test_runner_js: {
+        src: [
+          'chrome/js/requester/Features.js',
+          'chrome/js/test_runner/**/*.js',
+          'chrome/js/requester/modules/**/*.js',
+        ],
+        dest: 'chrome/js/test_runner.js'
+      },
+      test_runner_html: {
+        src: [
+        'chrome/html/test_runner/header.html',
+        'chrome/html/test_runner/sidebar.html',
+        'chrome/html/test_runner/main.html',
+        'chrome/html/test_runner/loggers/*.html',
+        'chrome/html/test_runner/modals/*.html',
+        'chrome/html/test_runner/footer.html'
+        ],
+        dest: 'chrome/test_runner.html'
       }
     },
 
     mindirect: {
-      dist: {
+      requester_js: {
         src: ['chrome/js/requester.js'],
         dest: 'chrome/js/requester.min.js'
+      },
+
+      test_runner_js: {
+        src: ['chrome/js/test_runner.js'],
+        dest: 'chrome/js/test_runner.min.js'
       }
     },
 
@@ -52,10 +77,7 @@ module.exports = function(grunt) {
 
       requester_js: {
         files: ['chrome/js/requester/**/*.js'],
-        tasks: ['concat:dist'],
-        options: {
-          livereload: true
-        }
+        tasks: ['concat:requester_js','concat:test_runner_js']
       },
 
       requester_html: {
@@ -67,11 +89,28 @@ module.exports = function(grunt) {
       },
 
       requester_css: {
-        files: ['chrome/css/**/*.scss'],
-        tasks: ['sass'],
-        options: {
-          livereload: true
-        }
+        files: ['chrome/css/requester/*.scss'],
+        tasks: ['sass:requester_sass']
+      },
+
+      test_runner_templates: {
+        files: ['chrome/html/test_runner/templates/*'],
+        tasks: ['handlebars']
+      },
+
+      test_runner_js: {
+        files: ['chrome/js/test_runner/**/*.js'],
+        tasks: ['concat:test_runner_js']
+      },
+
+      test_runner_html: {
+        files: ['chrome/html/test_runner/*', 'chrome/html/test_runner/modals/*', 'chrome/html/test_runner/loggers/*'],
+        tasks: ['concat:test_runner_html']
+      },
+
+      test_runner_css: {
+        files: ['chrome/css/test_runner/*.scss'],
+        tasks: ['sass:test_runner_sass']
       }
     },
 
@@ -111,15 +150,22 @@ module.exports = function(grunt) {
           }
         },
         files: {
-          "chrome/html/requester/templates.js": "chrome/html/requester/templates/*"
+          "chrome/html/requester/templates.js": "chrome/html/requester/templates/*",
+          "chrome/html/test_runner/templates.js": "chrome/html/test_runner/templates/*"
         }
       }
     },
 
     sass: {
-      dist: {
+      requester_sass: {
         files: {
           'chrome/css/requester/styles.css': 'chrome/css/requester/styles.scss'
+        }
+      },
+
+      test_runner_sass: {
+        files: {
+          'chrome/css/test_runner/styles.css': 'chrome/css/test_runner/styles.scss'
         }
       }
     },
