@@ -26,7 +26,7 @@ pm.indexedDB = {
 
         var request = indexedDB.open(pm.databaseName, "POSTman request history");
         request.onsuccess = function (e) {
-            var v = "0.7.6";
+            var v = "0.7.7";
             pm.indexedDB.db = e.target.result;
             var db = pm.indexedDB.db;
 
@@ -114,7 +114,7 @@ pm.indexedDB = {
     },
 
     open_latest:function (callback) {
-        var v = 22;
+        var v = 24;
         var request = indexedDB.open(pm.databaseName, v);
         request.onupgradeneeded = function (e) {
             console.log("Upgrade DB");
@@ -192,6 +192,7 @@ pm.indexedDB = {
             pm.indexedDB.open_v21(callback);
         }
         else {
+            console.log("Open latest DB");
             pm.indexedDB.open_latest(callback);
         }
 
