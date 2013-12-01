@@ -244,6 +244,7 @@ pm.init = function () {
 
     initializeStorage();
 
+    pm.appWindow = new AppWindow();
     pm.settings = new Settings();
 
     pm.methods = new RequestMethods(function() {

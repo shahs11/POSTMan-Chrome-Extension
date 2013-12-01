@@ -170,6 +170,9 @@ pm.init = function () {
     }
 
     pm.mediator = new Mediator();
+    pm.appWindow = new AppWindow();
+
+    console.log(pm.appWindow);
 
     initializeStorage();
 

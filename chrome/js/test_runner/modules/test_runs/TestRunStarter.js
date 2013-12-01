@@ -6,6 +6,12 @@ var TestRunStarter = Backbone.View.extend({
 		model.on("loadedCollections", this.renderCollections, this);
 		model.on("loadedEnvironments", this.renderEnvironments, this);
 
+		var environments = model.get("envManager").get("environments");
+		environments.on('change', this.renderEnvironments, this);
+		environments.on('reset', this.renderEnvironments, this);
+		environments.on('add', this.renderEnvironments, this);
+		environments.on('remove', this.renderEnvironments, this);		
+
 		$("#start-test-run").on("click", function() {
 			view.startRun();
 		});
@@ -33,6 +39,8 @@ var TestRunStarter = Backbone.View.extend({
 	},
 
 	renderEnvironments: function() {
+		$("#select-environment").html("");
+
 		var model = this.model;
 		var items = _.clone(model.get("envManager").get("environments").toJSON());
 		$('#select-environment').html("<option value='0'>No environment</option>");

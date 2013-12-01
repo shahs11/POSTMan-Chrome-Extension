@@ -15,6 +15,9 @@ var Globals = Backbone.Model.extend({
 
         var model = this;
 
+        console.log("Registering event");
+        pm.appWindow.trigger("registerInternalEvent", "updatedGlobals", this.onUpdatedGlobals, this);        
+
         this.startListeningForFileSystemSyncEvents();
 
         pm.storage.getValue('globals', function(s) {
@@ -124,6 +127,12 @@ var Globals = Backbone.Model.extend({
         pm.settings.setSetting("syncedGlobals", status);
     },
 
+    onUpdatedGlobals: function(globals) {
+        console.log("Globals: This is ", this);
+        console.log("Globals are now", globals);
+        this.set({"globals": globals});
+    },
+
     saveGlobals:function (globals) {
         var model = this;
 
@@ -131,8 +140,8 @@ var Globals = Backbone.Model.extend({
 
         var o = {'globals': JSON.stringify(globals)};
 
-        pm.storage.setValue(o, function() {
-            pm.mediator.trigger("sendMessageObject", "updatedGlobals", globals);
+        pm.storage.setValue(o, function() {            
+            pm.appWindow.trigger("sendMessageObject", "updatedGlobals", globals);
             model.addToSyncableFilesystem(model.get("syncFileID"));
         });
     },
@@ -141,6 +150,7 @@ var Globals = Backbone.Model.extend({
         this.set({"globals": globals});
         var o = {'globals': JSON.stringify(globals)};
         pm.storage.setValue(o, function() {
+            pm.appWindow.trigger("sendMessageObject", "updatedGlobals", globals);
         });
     }
 });

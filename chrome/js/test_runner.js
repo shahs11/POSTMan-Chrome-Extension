@@ -241,6 +241,9 @@ pm.init = function () {
     }
 
     pm.mediator = new Mediator();
+    pm.appWindow = new AppWindow();
+
+    console.log(pm.appWindow);
 
     initializeStorage();
 
@@ -493,6 +496,12 @@ var TestRunStarter = Backbone.View.extend({
 		model.on("loadedCollections", this.renderCollections, this);
 		model.on("loadedEnvironments", this.renderEnvironments, this);
 
+		var environments = model.get("envManager").get("environments");
+		environments.on('change', this.renderEnvironments, this);
+		environments.on('reset', this.renderEnvironments, this);
+		environments.on('add', this.renderEnvironments, this);
+		environments.on('remove', this.renderEnvironments, this);		
+
 		$("#start-test-run").on("click", function() {
 			view.startRun();
 		});
@@ -520,6 +529,8 @@ var TestRunStarter = Backbone.View.extend({
 	},
 
 	renderEnvironments: function() {
+		$("#select-environment").html("");
+
 		var model = this.model;
 		var items = _.clone(model.get("envManager").get("environments").toJSON());
 		$('#select-environment').html("<option value='0'>No environment</option>");
@@ -911,17 +922,35 @@ var TestRuns = Backbone.Collection.extend({
 var AppState = Backbone.Model.extend({
     defaults: function() {
         return {
-        	id:0,
         	variableProcessor:null,
             isModalOpen:false,
             activeModal: ""
         };
+    }
+});
+var AppWindow = Backbone.Model.extend({
+    defaults: function() {
+        return {
+        	id:0,        	
+            internalEvents: {}
+        };
     },
 
     initialize: function(options) {
-    	this.set("id", guid());
-
+        console.log("Initialized app window");
+    	this.set("id", guid());        
     	this.initializeInternalMessaging();
+    },
+
+    onRegisterInternalEvent: function(e, func, context) {
+        console.log("Registered internal event", e, func, context);
+        var internalEvents = this.get("internalEvents");
+        internalEvents[e] = {
+            "handler": func,
+            "context": context
+        }
+
+        console.log(internalEvents);
     },
 
     sendMessageObject: function(e, object) {
@@ -936,12 +965,19 @@ var AppState = Backbone.Model.extend({
 
     initializeInternalMessaging: function() {
     	var model = this;
-
-    	pm.mediator.on("sendMessageObject", this.sendMessageObject, this);
+        console.log("Initialized internal messaging");
+        this.on("registerInternalEvent", this.onRegisterInternalEvent, this);
+    	this.on("sendMessageObject", this.sendMessageObject, this);
 
     	chrome.runtime.onMessage.addListener(function(message) {
-    		if (model.get("id") !== message.id) {
-    			console.log("Received message from another window", message);
+    		if (model.get("id") !== message.id) {                
+    			console.log("Process message from another window", message);
+                var internalEvents = model.get("internalEvents");
+                if (message.event in internalEvents) {
+                    var e = message.event;
+                    var object = message.object;
+                    _.bind(internalEvents[e].handler, internalEvents[e].context)(object);
+                }
     		}
     		else {
     			console.log("Received message from the same window", message);
@@ -4970,7 +5006,10 @@ var Environments = Backbone.Collection.extend({
     initialize:function () {
         var collection = this;
 
-        // TODO Add events for in-memory updates
+        // TODO Events for in-memory updates
+        pm.appWindow.trigger("registerInternalEvent", "addedEnvironment", this.onAddedEnvironment, this);
+        pm.appWindow.trigger("registerInternalEvent", "updatedEnvironment", this.onUpdatedEnvironment, this);
+        pm.appWindow.trigger("registerInternalEvent", "deletedEnvironment", this.onDeletedEnvironment, this);
 
         this.startListeningForFileSystemSyncEvents();
 
@@ -4983,6 +5022,22 @@ var Environments = Backbone.Collection.extend({
             collection.trigger("loadedEnvironments");
             pm.mediator.trigger("loadedEnvironments");
         })
+    },
+
+    // Functions for internal app window messaging
+    onAddedEnvironment: function(environment) {
+        console.log("Add environment", environment);
+        this.add(environment, { merge: true });
+    },
+
+    onUpdatedEnvironment: function(environment) {
+        console.log("Update environment", environment);
+        this.add(environment, { merge: true });
+    },
+
+    onDeletedEnvironment: function(id) {
+        console.log("Delete environment", id);
+        this.remove(id);
     },
 
     startListeningForFileSystemSyncEvents: function() {
@@ -5090,6 +5145,8 @@ var Environments = Backbone.Collection.extend({
         var envModel = new Environment(environment);
         collection.add(envModel);
 
+        pm.appWindow.trigger("sendMessageObject", "addedEnvironment", environment);
+
         pm.indexedDB.environments.addEnvironment(environment, function () {
             if (doNotSync) {
                 console.log("Do not sync this change");
@@ -5114,6 +5171,7 @@ var Environments = Backbone.Collection.extend({
         pm.indexedDB.environments.updateEnvironment(environment, function () {
             var envModel = new Environment(environment);
             collection.add(envModel, {merge: true});
+            pm.appWindow.trigger("sendMessageObject", "updatedEnvironment", environment);
 
             if (doNotSync) {
                 console.log("Do not sync this change");
@@ -5130,6 +5188,7 @@ var Environments = Backbone.Collection.extend({
         var environment = this.get(id);
         environment.set("synced", status);
         collection.add(environment, {merge: true});
+        pm.appWindow.trigger("sendMessageObject", "updatedEnvironment", environment);
 
         pm.indexedDB.environments.updateEnvironment(environment.toJSON(), function () {
         });
@@ -5140,6 +5199,7 @@ var Environments = Backbone.Collection.extend({
 
         pm.indexedDB.environments.deleteEnvironment(id, function () {
             collection.remove(id);
+            pm.appWindow.trigger("sendMessageObject", "deletedEnvironment", id);
 
             if (doNotSync) {
                 console.log("Do not sync this");
@@ -5179,6 +5239,7 @@ var Environments = Backbone.Collection.extend({
         pm.indexedDB.environments.addEnvironment(environment, function () {
             var envModel = new Environment(environment);
             collection.add(envModel);
+            pm.appWindow.trigger("sendMessageObject", "addedEnvironment", environment);
             collection.addToSyncableFilesystem(environment.id);
         });
     },
@@ -5191,6 +5252,7 @@ var Environments = Backbone.Collection.extend({
         pm.indexedDB.environments.addEnvironment(environment, function () {
             var envModel = new Environment(environment);
             collection.add(envModel, {merge: true});
+            pm.appWindow.trigger("sendMessageObject", "updatedEnvironment", environment);
 
             if (doNotSync) {
                 console.log("Do not sync this");
@@ -5230,6 +5292,7 @@ var Environments = Backbone.Collection.extend({
         function onUpdateEnvironment(environment) {
             var envModel = new Environment(environment);
             collection.add(envModel, {merge: true});
+            pm.mediator.trigger("sendMessageObject", "updatedEnvironment", environment);
 
             collection.addToSyncableFilesystem(environment.id);
         }
@@ -5257,6 +5320,9 @@ var Globals = Backbone.Model.extend({
         this.set({"globals": []});
 
         var model = this;
+
+        console.log("Registering event");
+        pm.appWindow.trigger("registerInternalEvent", "updatedGlobals", this.onUpdatedGlobals, this);        
 
         this.startListeningForFileSystemSyncEvents();
 
@@ -5367,6 +5433,12 @@ var Globals = Backbone.Model.extend({
         pm.settings.setSetting("syncedGlobals", status);
     },
 
+    onUpdatedGlobals: function(globals) {
+        console.log("Globals: This is ", this);
+        console.log("Globals are now", globals);
+        this.set({"globals": globals});
+    },
+
     saveGlobals:function (globals) {
         var model = this;
 
@@ -5374,8 +5446,8 @@ var Globals = Backbone.Model.extend({
 
         var o = {'globals': JSON.stringify(globals)};
 
-        pm.storage.setValue(o, function() {
-            pm.mediator.trigger("sendMessageObject", "updatedGlobals", globals);
+        pm.storage.setValue(o, function() {            
+            pm.appWindow.trigger("sendMessageObject", "updatedGlobals", globals);
             model.addToSyncableFilesystem(model.get("syncFileID"));
         });
     },
@@ -5384,9 +5456,11 @@ var Globals = Backbone.Model.extend({
         this.set({"globals": globals});
         var o = {'globals': JSON.stringify(globals)};
         pm.storage.setValue(o, function() {
+            pm.appWindow.trigger("sendMessageObject", "updatedGlobals", globals);
         });
     }
 });
+
 var VariableProcessor = Backbone.Model.extend({
     defaults: function() {
         return {
