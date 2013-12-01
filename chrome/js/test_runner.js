@@ -502,6 +502,12 @@ var TestRunStarter = Backbone.View.extend({
 		environments.on('add', this.renderEnvironments, this);
 		environments.on('remove', this.renderEnvironments, this);		
 
+		var collections = model.get("collections");
+
+		collections.on("add", this.renderCollections, this);
+		collections.on("remove", this.renderCollections, this);
+		collections.on("updateCollection", this.renderCollections, this);
+
 		$("#start-test-run").on("click", function() {
 			view.startRun();
 		});
@@ -523,16 +529,16 @@ var TestRunStarter = Backbone.View.extend({
 		        }
 		    }
 		}
-
+		
+		$("#select-collection").html("");
 		$('#select-collection').html("<option value='0'>Select</option>");
 		$('#select-collection').append(Handlebars.templates.collection_selector_list({items: items}));
 	},
 
 	renderEnvironments: function() {
-		$("#select-environment").html("");
-
 		var model = this.model;
 		var items = _.clone(model.get("envManager").get("environments").toJSON());
+		$("#select-environment").html("");
 		$('#select-environment').html("<option value='0'>No environment</option>");
 		$('#select-environment').append(Handlebars.templates.environment_list({items: items}));
 	},
@@ -1520,6 +1526,13 @@ var PmCollections = Backbone.Collection.extend({
         this.loadAllCollections();
 
         // TODO Add events for in-memory updates
+        pm.appWindow.trigger("registerInternalEvent", "addedCollection", this.onAddedCollection, this);
+        pm.appWindow.trigger("registerInternalEvent", "updatedCollection", this.onUpdatedCollection, this);
+        pm.appWindow.trigger("registerInternalEvent", "deletedCollection", this.onDeletedCollection, this);
+
+        pm.appWindow.trigger("registerInternalEvent", "addedCollectionRequest", this.onAddedCollectionRequest, this);
+        pm.appWindow.trigger("registerInternalEvent", "updatedCollectionRequest", this.onUpdatedCollectionRequest, this);
+        pm.appWindow.trigger("registerInternalEvent", "deletedCollectionRequest", this.onDeletedCollectionRequest, this);
 
         pm.mediator.on("addDirectoryCollection", this.onAddDirectoryCollection, this);
         pm.mediator.on("addResponseToCollectionRequest", this.addResponseToCollectionRequest, this);
@@ -1527,6 +1540,43 @@ var PmCollections = Backbone.Collection.extend({
         pm.mediator.on("deletedSharedCollection", this.onDeletedSharedCollection, this);
         pm.mediator.on("overwriteCollection", this.onOverwriteCollection, this);
         pm.mediator.on("uploadAllLocalCollections", this.onUploadAllLocalCollections, this);
+    },
+
+    onAddedCollection: function(collection) {
+        this.add(collection, { merge: true });
+    },
+
+    onUpdatedCollection: function(collection) {
+        this.add(collection, { merge: true });
+        this.trigger("updateCollection");
+    },
+
+    onDeletedCollection: function(id) {
+        this.remove(id);
+    },
+
+    onAddedCollectionRequest: function(request) {
+        var collection = this.get(request.collectionId);
+
+        if (collection) {
+            collection.addRequest(request);
+        }
+    },
+
+    onUpdatedCollectionRequest: function(request) {
+        var collection = this.get(request.collectionId);
+
+        if (collection) {
+            collection.updateRequest(request);
+        }
+    },
+
+    onDeletedCollectionRequest: function(id) {
+        var collection = this.get(request.collectionId);
+
+        if (collection) {
+            collection.deleteRequest(id);
+        }
     },
 
     onUploadAllLocalCollections: function() {
@@ -1791,6 +1841,7 @@ var PmCollections = Backbone.Collection.extend({
             var collection = new PmCollection(c);
 
             pmCollection.add(collection, {merge: true});
+            pm.appWindow.trigger("sendMessageObject", "addedCollection", collection);
 
             pm.mediator.trigger("refreshCollections");
 
@@ -1811,6 +1862,7 @@ var PmCollections = Backbone.Collection.extend({
         pm.indexedDB.updateCollection(collectionJSON, function (c) {
             var collection = pmCollection.get(c.id);
             pmCollection.add(collection, {merge: true});
+            pm.appWindow.trigger("sendMessageObject", "updatedCollection", collection);
 
             pm.mediator.trigger("refreshCollections");
 
@@ -1829,6 +1881,7 @@ var PmCollections = Backbone.Collection.extend({
 
         pm.indexedDB.deleteCollection(id, function () {
             pmCollection.remove(id);
+            pm.appWindow.trigger("sendMessageObject", "deletedCollection", id);
 
             if (sync) {
                 pmCollection.removeFromSyncableFilesystem(id);
@@ -1879,6 +1932,7 @@ var PmCollections = Backbone.Collection.extend({
 
             if (collection) {
                 collection.addRequest(request);
+                pm.appWindow.trigger("sendMessageObject", "addedCollectionRequest", request);
             }
 
             if (sync) {
@@ -1903,6 +1957,7 @@ var PmCollections = Backbone.Collection.extend({
 
             if (collection) {
                 collection.updateRequest(request);
+                pm.appWindow.trigger("sendMessageObject", "updatedCollectionRequest", request);
             }
 
             if (sync) {
@@ -1933,6 +1988,7 @@ var PmCollections = Backbone.Collection.extend({
 
                 if (sync) {
                     pmCollection.removeRequestFromSyncableFilesystem(id);
+                    pm.appWindow.trigger("sendMessageObject", "deletedCollectionRequest", id);
                 }
 
                 if(callback) {
@@ -2291,6 +2347,7 @@ var PmCollections = Backbone.Collection.extend({
         targetCollection.set("requests", collection.requests);
 
         pmCollection.add(targetCollection, {merge: true});
+        pm.appWindow.trigger("sendMessageObject", "updatedCollection", targetCollection);
 
         pmCollection.updateCollectionInDataStore(targetCollection.getAsJSON(), true, function (c) {
             var driveCollectionRequests = collection.requests;

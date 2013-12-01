@@ -12,6 +12,12 @@ var TestRunStarter = Backbone.View.extend({
 		environments.on('add', this.renderEnvironments, this);
 		environments.on('remove', this.renderEnvironments, this);		
 
+		var collections = model.get("collections");
+
+		collections.on("add", this.renderCollections, this);
+		collections.on("remove", this.renderCollections, this);
+		collections.on("updateCollection", this.renderCollections, this);
+
 		$("#start-test-run").on("click", function() {
 			view.startRun();
 		});
@@ -33,16 +39,16 @@ var TestRunStarter = Backbone.View.extend({
 		        }
 		    }
 		}
-
+		
+		$("#select-collection").html("");
 		$('#select-collection').html("<option value='0'>Select</option>");
 		$('#select-collection').append(Handlebars.templates.collection_selector_list({items: items}));
 	},
 
 	renderEnvironments: function() {
-		$("#select-environment").html("");
-
 		var model = this.model;
 		var items = _.clone(model.get("envManager").get("environments").toJSON());
+		$("#select-environment").html("");
 		$('#select-environment').html("<option value='0'>No environment</option>");
 		$('#select-environment').append(Handlebars.templates.environment_list({items: items}));
 	},

@@ -231,6 +231,9 @@ input[type="file"] {
 #test-run-status {
   padding: 10px; }
 
+#test-run-count {
+  margin-top: 7px; }
+
 .test-run-request-result {
   border-bottom: solid thin #efefef;
   margin-bottom: 10px;
