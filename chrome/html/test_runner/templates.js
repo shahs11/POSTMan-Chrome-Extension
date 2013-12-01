@@ -256,6 +256,44 @@ function program1(depth0,data) {
   else { return ''; }
   });
 
+this["Handlebars"]["templates"]["test_run_target"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, stack2, options, functionType="function", escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
+
+function program1(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "<span class=\"test-run-folder-name\">/"
+    + escapeExpression(((stack1 = ((stack1 = depth0.folder),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</span>";
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n    <div class=\"test-run-environment-name\">\n        <strong>Environment</strong> "
+    + escapeExpression(((stack1 = ((stack1 = depth0.environment),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\n    </div>\n    ";
+  return buffer;
+  }
+
+  buffer += "<div class=\"test-run-progress-content\">\n    <div>\n        <span class=\"test-run-collection-name\">"
+    + escapeExpression(((stack1 = ((stack1 = depth0.collection),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</span>";
+  stack2 = helpers['if'].call(depth0, depth0.folder, {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack2 || stack2 === 0) { buffer += stack2; }
+  buffer += "\n    </div>\n    ";
+  stack2 = helpers['if'].call(depth0, depth0.environment, {hash:{},inverse:self.noop,fn:self.program(3, program3, data),data:data});
+  if(stack2 || stack2 === 0) { buffer += stack2; }
+  buffer += "\n    <div class=\"test-run-time\">\n    ";
+  options = {hash:{},data:data};
+  buffer += escapeExpression(((stack1 = helpers.formatTime || depth0.formatTime),stack1 ? stack1.call(depth0, depth0.timestamp, options) : helperMissing.call(depth0, "formatTime", depth0.timestamp, options)))
+    + "\n    </div>\n</div>";
+  return buffer;
+  });
+
 this["Handlebars"]["templates"]["tests"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};

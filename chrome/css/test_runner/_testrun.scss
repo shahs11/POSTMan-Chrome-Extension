@@ -95,3 +95,21 @@
 		font-size: 11px;
 	}
 }
+
+.test-run-progress-content {
+	margin-bottom: 10px;
+	
+	.test-run-collection-name {
+		font-weight: bold;
+		font-size: 14px;
+	}
+
+	.test-run-environment-name {
+		color: #555;
+		font-size: 12px;
+	}
+
+	.test-run-time {
+		color: #999;
+	}
+}

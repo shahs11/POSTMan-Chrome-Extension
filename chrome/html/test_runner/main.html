@@ -34,7 +34,7 @@
 				        <label class="control-label" for="test-run-count">Counts</label>
 
 				        <div class="controls">
-				            <input class="input-small" type="text" name="test-run-count" id="test-run-count" value="1"/>
+				        	<input name="test-run-count" id="test-run-count" value="1" type="range" min="1" max="500" step="1">
 				        </div>
 				    </div>
 
@@ -46,16 +46,9 @@
 				</form>
 			</div>
 			<div id="test-run-progress">
-				<h4>Running....</h4>
-				<div id="test-run-progress-stats">
-				</div>
-				<form class="form-horizontal">
-				    <div class="control-group">
-				        <div class="controls">
-				            <a id="new-test-run" class="btn btn-primary">New run</a>
-				        </div>
-				    </div>
-				</form>
+				<div id="test-run-target">
+				</div>								
+				<a id="new-test-run" class="btn btn-primary">New run</a>				
 			</div>
 		</div>
 	</section>

@@ -103,7 +103,7 @@ var Header = Backbone.View.extend({
 			$("#add-ons").css("display", "block");
 		}
 	},
-
+	
 	onOpenModule: function(module) {
 		if (module === "directory") {
 			$("#add-ons").css("display", "none");

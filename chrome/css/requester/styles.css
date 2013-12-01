@@ -292,7 +292,7 @@ li .right {
     float: left;
     margin-left: 0; }
   .navbar-main-navigation li:first-child {
-    margin-left: 15px; }
+    margin-left: 5px; }
   .navbar-main-navigation a {
     color: #999;
     padding-left: 13px;
@@ -300,7 +300,8 @@ li .right {
     display: inline-block;
     height: 32px;
     margin-left: 15px;
-    padding-right: 13px; }
+    padding-right: 13px;
+    margin-left: 5px; }
   .navbar-main-navigation a:hover {
     background: #333;
     color: #AAA;

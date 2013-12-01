@@ -91,6 +91,8 @@ var TestRun = Backbone.Model.extend({
 	},
 
 	runRequests: function(requests, runCount) {
+		var model = this;
+
 		var currentRunCount = 0;
 
 		this.set("requests", requests);
@@ -170,6 +172,7 @@ var TestRun = Backbone.Model.extend({
 				currentRunCount += 1;
 
 				if (currentRunCount == runCount) {
+					pm.mediator.trigger("finishedTestRun", model);
 				}
 				else {
 					// Re-initiate run
